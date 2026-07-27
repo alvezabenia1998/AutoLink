@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import { supabase } from "./services/supabase";
 import "./styles.css";
+import { obtenerPerfil, guardarPerfil } from "./services/perfilService";
 
 type Pantalla =
   | "inicio"
@@ -1242,11 +1243,12 @@ export default function App() {
       <main className={mostrarMenu ? "content" : "content-cliente"}>
         {pantalla === "inicio" && (
           <Inicio
-            propuestas={propuestas}
-            catalogo={catalogo}
-            abrirNuevaPropuesta={abrirNuevaPropuesta}
-            abrirPropuesta={abrirPropuesta}
-          />
+  propuestas={propuestas}
+  catalogo={catalogo}
+  abrirNuevaPropuesta={abrirNuevaPropuesta}
+  abrirPropuesta={abrirPropuesta}
+  asesor={asesor}
+/>
         )}
 
         {pantalla === "propuestas" && (
@@ -1853,11 +1855,13 @@ function Inicio({
   catalogo,
   abrirNuevaPropuesta,
   abrirPropuesta,
+  asesor,
 }: {
   propuestas: Propuesta[];
   catalogo: ModeloVehiculo[];
   abrirNuevaPropuesta: () => void;
   abrirPropuesta: (propuesta: Propuesta) => void;
+  asesor: Asesor;
 }) {
   const enviadas = propuestas.filter((p) => p.estado === "Enviada").length;
   const interesados = propuestas.filter(
@@ -1869,7 +1873,9 @@ function Inicio({
       <header className="encabezado">
         <div>
           <p className="eyebrow">Panel principal</p>
-          <h1>Hola Michael 👋</h1>
+          <h1>
+  Hola {(asesor.nombre || "Asesor").split(" ")[0]} 👋
+</h1>
           <p>Creá propuestas profesionales y gestioná tus clientes.</p>
         </div>
         <button className="boton-verde" onClick={abrirNuevaPropuesta}>
