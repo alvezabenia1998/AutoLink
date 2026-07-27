@@ -837,9 +837,7 @@ export default function App() {
      const mensajeError =
   error instanceof Error ? error.message : "Error desconocido";
 
-alert(
-  `La propuesta quedó guardada en este dispositivo, pero no se pudo sincronizar con la nube.\n\nError: ${mensajeError}`
-);
+alert("PRUEBA NUEVA - error al sincronizar");
     }
   };
 
