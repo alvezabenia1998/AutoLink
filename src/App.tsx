@@ -834,9 +834,12 @@ export default function App() {
     } catch (error) {
       console.error("No se pudo guardar en Supabase:", error);
       setEstadoNube(navigator.onLine ? "error" : "offline");
-      alert(
-        "La propuesta quedó guardada como respaldo en este dispositivo, pero no se pudo sincronizar con la nube."
-      );
+     const mensajeError =
+  error instanceof Error ? error.message : "Error desconocido";
+
+alert(
+  `La propuesta quedó guardada en este dispositivo, pero no se pudo sincronizar con la nube.\n\nError: ${mensajeError}`
+);
     }
   };
 
