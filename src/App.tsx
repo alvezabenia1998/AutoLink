@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
+import { supabase } from "./services/supabase";
 import "./styles.css";
 
 type Pantalla =
@@ -1188,6 +1189,10 @@ export default function App() {
 
   const mostrarMenu = pantalla !== "vistaCliente" && !esEnlacePublico;
 
+const cerrarSesion = async () => {
+  await supabase.auth.signOut();
+};
+
   return (
     <div className={mostrarMenu ? "app" : "app app-cliente"}>
       {mostrarMenu && (
@@ -1247,9 +1252,16 @@ export default function App() {
             onClick={() => setPantalla("configuracion")}
           >
             ⚙ Configuración
+            </button>
+
+            <button
+           className="boton-secundario"
+            onClick={cerrarSesion}
+          >
+           🚪 Cerrar sesión
           </button>
-        </aside>
-      )}
+           </aside>
+           )}
 
       <main className={mostrarMenu ? "content" : "content-cliente"}>
         {pantalla === "inicio" && (
