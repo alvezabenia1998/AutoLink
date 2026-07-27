@@ -802,26 +802,35 @@ export default function App() {
     setPantalla("vistaCliente");
     window.scrollTo(0, 0);
 
-    try {
-      setEstadoNube("conectando");
+ try {
+  setEstadoNube("conectando");
 
-      const respuesta = await fetch(SUPABASE_PROPUESTAS_URL, {
-        method: "POST",
-        headers: {
-          ...cabecerasSupabase,
-          Prefer: "return=minimal",
-        },
-        body: JSON.stringify(
-          propuestaAFila(propuesta, modeloSeleccionado, asesor)
-        ),
-      });
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-      if (!respuesta.ok) {
-        const detalle = await respuesta.text();
-        throw new Error(detalle || `Error ${respuesta.status}`);
-      }
+  if (!session) {
+    throw new Error("No hay una sesión iniciada.");
+  }
 
-      setEstadoNube("sincronizado");
+  const respuesta = await fetch(SUPABASE_PROPUESTAS_URL, {
+    method: "POST",
+    headers: {
+      ...cabecerasSupabase,
+      Authorization: `Bearer ${session.access_token}`,
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify(
+      propuestaAFila(propuesta, modeloSeleccionado, asesor)
+    ),
+  });
+
+  if (!respuesta.ok) {
+    const detalle = await respuesta.text();
+    throw new Error(detalle || `Error ${respuesta.status}`);
+  }
+
+  setEstadoNube("sincronizado");
     } catch (error) {
       console.error("No se pudo guardar en Supabase:", error);
       setEstadoNube(navigator.onLine ? "error" : "offline");
