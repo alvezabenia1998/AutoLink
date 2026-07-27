@@ -1,0 +1,298 @@
+/* =========================================
+   NEXORA 2.0 — SIDEBAR
+========================================= */
+
+.nx-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 20;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 290px;
+  height: 100vh;
+  padding: 24px 18px;
+
+  overflow-y: auto;
+
+  color: #ffffff;
+  background:
+    radial-gradient(
+      circle at 15% 0%,
+      rgba(34, 197, 94, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      #0a1220 0%,
+      #0f172a 58%,
+      #111c30 100%
+    );
+
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 18px 0 50px rgba(15, 23, 42, 0.16);
+}
+
+/* LOGO */
+
+.nx-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 4px 4px 23px;
+  margin-bottom: 22px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nx-logo-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+
+  width: 50px;
+  height: 50px;
+
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+
+  background: linear-gradient(145deg, #2bd16f, #149447);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 15px;
+
+  box-shadow:
+    0 12px 28px rgba(34, 197, 94, 0.27),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.nx-logo h1 {
+  margin: 0;
+
+  color: #ffffff;
+  font-size: 21px;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: 1.2px;
+}
+
+.nx-logo p {
+  margin: 7px 0 0;
+
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* MENÚ */
+
+.nx-menu {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.nx-primary-button,
+.nx-menu-item,
+.nx-logout {
+  width: 100%;
+  border: 0;
+  font-family: inherit;
+}
+
+.nx-primary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 48px;
+  padding: 0 16px;
+  margin-bottom: 13px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+
+  background: linear-gradient(135deg, #22c55e, #159447);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 13px;
+
+  box-shadow: 0 12px 24px rgba(22, 163, 74, 0.22);
+
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+
+.nx-primary-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 16px 30px rgba(22, 163, 74, 0.3);
+}
+
+.nx-primary-button:active {
+  transform: translateY(0);
+}
+
+.nx-menu-item {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  min-height: 47px;
+  padding: 0 13px;
+
+  color: #cbd5e1;
+  font-size: 14px;
+  font-weight: 650;
+  text-align: left;
+
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.nx-menu-item > span {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+
+  width: 25px;
+  height: 25px;
+
+  font-size: 15px;
+}
+
+.nx-menu-item:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.065);
+  border-color: rgba(255, 255, 255, 0.055);
+  transform: translateX(2px);
+}
+
+.nx-menu-item.active {
+  color: #ffffff;
+  background: rgba(34, 197, 94, 0.13);
+  border-color: rgba(74, 222, 128, 0.2);
+  box-shadow: inset 3px 0 0 #22c55e;
+}
+
+.nx-menu-item.active > span {
+  color: #4ade80;
+}
+
+.nx-badge {
+  display: grid;
+  place-items: center;
+
+  min-width: 25px;
+  height: 25px;
+  padding: 0 7px;
+  margin-left: auto;
+
+  color: #d1fae5;
+  font-size: 11px;
+  font-weight: 800;
+
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(74, 222, 128, 0.18);
+  border-radius: 999px;
+}
+
+/* PARTE INFERIOR */
+
+.nx-sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  padding-top: 18px;
+  margin-top: 24px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nx-cloud {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  min-height: 42px;
+  padding: 0 13px;
+
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 650;
+
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 11px;
+}
+
+.nx-cloud-dot {
+  width: 8px;
+  height: 8px;
+
+  background: #22c55e;
+  border-radius: 50%;
+
+  box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.1);
+}
+
+.nx-logout {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+
+  min-height: 45px;
+  padding: 0 13px;
+
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 650;
+
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 11px;
+
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.nx-logout:hover {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.09);
+  border-color: rgba(248, 113, 113, 0.14);
+}
+
+/* SCROLL DEL SIDEBAR */
+
+.nx-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.nx-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nx-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+}

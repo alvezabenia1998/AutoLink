@@ -1,0 +1,51 @@
+:root{
+
+/* ========= COLORES ========= */
+
+--bg:#F4F7FB;
+
+--sidebar:#0F172A;
+
+--sidebar-light:#1E293B;
+
+--primary:#22C55E;
+
+--primary-dark:#16A34A;
+
+--white:#FFFFFF;
+
+--text:#0F172A;
+
+--text-soft:#64748B;
+
+--border:#E5E7EB;
+
+
+/* ========= BORDES ========= */
+
+--radius-xs:8px;
+
+--radius-sm:12px;
+
+--radius-md:18px;
+
+--radius-lg:26px;
+
+
+/* ========= SOMBRAS ========= */
+
+--shadow-sm:
+0 6px 18px rgba(15,23,42,.05);
+
+--shadow-md:
+0 14px 38px rgba(15,23,42,.08);
+
+--shadow-lg:
+0 30px 70px rgba(15,23,42,.12);
+
+
+/* ========= TRANSICIONES ========= */
+
+--speed:.25s;
+
+}
