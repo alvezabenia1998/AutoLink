@@ -1,13 +1,8 @@
-// Configuración central de Supabase
+import { createClient } from "@supabase/supabase-js";
 
-export const SUPABASE_URL = "https://xxqnjtndcxnzwzvxaptz.supabase.co";
+const supabaseUrl = "https://bkvxzsxgwqcztkgxrfcp.supabase.co";
 
-export const SUPABASE_KEY = "sb_publishable_HqV0cAET6T8c8jLRpmpt-A_OoDPYdCr";
+const supabaseKey =
+  "sb_publishable_bkcSlYmEqO-_twwZzCqpGA_oagnye44";
 
-export const SUPABASE_API = `${SUPABASE_URL}/rest/v1/propuestas`;
-
-export const HEADERS = {
-  apikey: SUPABASE_KEY,
-  Authorization: `Bearer ${SUPABASE_KEY}`,
-  "Content-Type": "application/json",
-};
+export const supabase = createClient(supabaseUrl, supabaseKey);

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import "./styles.css";
-
+import Login from "./components/Login";
 
 type Pantalla =
   | "inicio"
@@ -491,7 +491,7 @@ const asesorInicial: Asesor = {
   nombre: "Michael Alvez",
   cargo: "Asesor Comercial BYD",
   telefono: "5491100000000",
-  email: "michael@autoquote.com",
+  email: "michael@nexora.com",
   foto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=85",
   concesionario: "BYD",
   logo: "",
