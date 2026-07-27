@@ -19,8 +19,8 @@ export default function Login() {
     if (error) {
       setMensaje("Correo o contraseña incorrectos.");
     } else {
-      setMensaje("Inicio de sesión correcto.");
-    }
+  window.location.reload();
+}
 
     setCargando(false);
   };
