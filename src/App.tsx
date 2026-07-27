@@ -1207,9 +1207,9 @@ export default function App() {
       {mostrarMenu && (
         <aside className="sidebar">
           <div className="marca">
-            <div className="marca-icono">AQ</div>
+            <div className="marca-icono">N</div>
             <div>
-              <h2>AutoQuote</h2>
+              <h2>Nexora</h2>
               <small>Propuestas comerciales</small>
             </div>
           </div>
