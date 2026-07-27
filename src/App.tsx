@@ -90,105 +90,84 @@ const STORAGE_PROPUESTAS = "autoquote-propuestas-v3";
 const STORAGE_CATALOGO = "autoquote-catalogo-v3";
 const STORAGE_ASESOR = "autoquote-asesor-v3";
 
-const SUPABASE_URL = "https://bkvxzsxgwqcztkgxrfcp.supabase.co";
-const SUPABASE_KEY = "sb_publishable_bkcSlYmEqO-_twwZzCqpGA_oagnye44";
-const SUPABASE_PROPUESTAS_URL = `${SUPABASE_URL}/rest/v1/propuestas`;
 
 type EstadoNube = "conectando" | "sincronizado" | "offline" | "error";
 
-type PropuestaFila = {
-  id: string;
-  created_at: string;
-  cliente: string;
-  telefono: string;
-  email: string | null;
-  modelo_id: string;
-  version: string;
-  color_id: string;
-  forma_compra: FormaCompra;
-  precio_lista: number;
-  bonificacion: number;
-  tipo_gasto: TipoGasto;
-  monto_gastos: number;
-  anticipo: number;
-  cuotas: number;
-  valor_cuota: number;
-  aclaracion_credito: string | null;
-  accesorios: AccesoriosSeleccionados;
-  cargadores_incluidos: string[];
-  observaciones: string | null;
-  vigencia_dias: number;
-  estado: Propuesta["estado"];
-  datos_modelo?: ModeloVehiculo | null;
-  datos_asesor?: Asesor | null;
+type PropuestaDatos = {
+  propuesta: Propuesta;
+  modelo: ModeloVehiculo | null;
+  asesor: Asesor | null;
 };
 
-const cabecerasSupabase = {
-  apikey: SUPABASE_KEY,
-  Authorization: `Bearer ${SUPABASE_KEY}`,
-  "Content-Type": "application/json",
+type PropuestaFila = {
+  id: number | string;
+  created_at: string;
+  cliente: string;
+  telefono: string | null;
+  email: string | null;
+  modelo_id: string | null;
+  color_id: string | null;
+  precio: number | null;
+  datos: PropuestaDatos | null;
 };
 
 const propuestaAFila = (
   propuesta: Propuesta,
   modelo?: ModeloVehiculo,
   asesor?: Asesor
-): PropuestaFila => ({
-  id: propuesta.id,
+) => ({
   created_at: propuesta.fecha,
   cliente: propuesta.cliente,
-  telefono: propuesta.telefono,
+  telefono: propuesta.telefono || null,
   email: propuesta.email || null,
-  modelo_id: propuesta.modeloId,
-  version: propuesta.version,
-  color_id: propuesta.colorId,
-  forma_compra: propuesta.formaCompra,
-  precio_lista: propuesta.precioLista,
-  bonificacion: propuesta.bonificacion,
-  tipo_gasto: propuesta.tipoGasto,
-  monto_gastos: propuesta.montoGastos,
-  anticipo: propuesta.anticipo,
-  cuotas: propuesta.cuotas,
-  valor_cuota: propuesta.valorCuota,
-  aclaracion_credito: propuesta.aclaracionCredito || null,
-  accesorios: propuesta.accesorios,
-  cargadores_incluidos: propuesta.cargadoresIncluidos,
-  observaciones: propuesta.observaciones || null,
-  vigencia_dias: propuesta.vigenciaDias,
-  estado: propuesta.estado,
-  datos_modelo: modelo || null,
-  datos_asesor: asesor || null,
+  modelo_id: propuesta.modeloId || null,
+  color_id: propuesta.colorId || null,
+  precio: Math.max(propuesta.precioLista - propuesta.bonificacion, 0),
+  datos: {
+    propuesta,
+    modelo: modelo || null,
+    asesor: asesor || null,
+  } satisfies PropuestaDatos,
 });
 
-const filaAPropuesta = (fila: PropuestaFila): Propuesta => ({
-  id: fila.id,
-  fecha: fila.created_at,
-  cliente: fila.cliente || "",
-  telefono: fila.telefono || "",
-  email: fila.email || "",
-  modeloId: fila.modelo_id,
-  version: fila.version,
-  colorId: fila.color_id,
-  formaCompra: fila.forma_compra,
-  precioLista: Number(fila.precio_lista || 0),
-  bonificacion: Number(fila.bonificacion || 0),
-  tipoGasto: fila.tipo_gasto,
-  montoGastos: Number(fila.monto_gastos || 0),
-  anticipo: Number(fila.anticipo || 0),
-  cuotas: Number(fila.cuotas || 0),
-  valorCuota: Number(fila.valor_cuota || 0),
-  aclaracionCredito: fila.aclaracion_credito || "",
-  accesorios: fila.accesorios || {
-    polarizado: false,
-    tuercas: false,
-    alfombras: false,
-    patentamiento: false,
-  },
-  cargadoresIncluidos: fila.cargadores_incluidos || [],
-  observaciones: fila.observaciones || "",
-  vigenciaDias: Number(fila.vigencia_dias || 5),
-  estado: fila.estado || "Guardada",
-});
+const filaAPropuesta = (fila: PropuestaFila): Propuesta => {
+  if (fila.datos?.propuesta) {
+    return {
+      ...fila.datos.propuesta,
+      id: fila.datos.propuesta.id || String(fila.id),
+    };
+  }
+
+  return {
+    id: String(fila.id),
+    fecha: fila.created_at,
+    cliente: fila.cliente || "",
+    telefono: fila.telefono || "",
+    email: fila.email || "",
+    modeloId: fila.modelo_id || "",
+    version: "GS",
+    colorId: fila.color_id || "",
+    formaCompra: "contado",
+    precioLista: Number(fila.precio || 0),
+    bonificacion: 0,
+    tipoGasto: "sin-gastos",
+    montoGastos: 0,
+    anticipo: 0,
+    cuotas: 0,
+    valorCuota: 0,
+    aclaracionCredito: "",
+    accesorios: {
+      polarizado: false,
+      tuercas: false,
+      alfombras: false,
+      patentamiento: false,
+    },
+    cargadoresIncluidos: [],
+    observaciones: "",
+    vigenciaDias: 5,
+    estado: "Guardada",
+  };
+};
 
 const FOTO_AUTO_ALTERNATIVA =
   "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%271400%27%20height%3D%27800%27%20viewBox%3D%270%200%201400%20800%27%3E%0A%3Cdefs%3E%0A%20%20%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%0A%20%20%20%20%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23f8fafc%27/%3E%0A%20%20%20%20%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23e5e7eb%27/%3E%0A%20%20%3C/linearGradient%3E%0A%3C/defs%3E%0A%3Crect%20width%3D%271400%27%20height%3D%27800%27%20fill%3D%27url%28%23g%29%27/%3E%0A%3Cpath%20d%3D%27M345%20500c35-105%20120-185%20250-210h260c115%2020%20205%2095%20250%20210l80%2015c38%207%2065%2040%2065%2079v38H150v-38c0-39%2027-72%2065-79l130-15z%27%20fill%3D%27%23cbd5e1%27/%3E%0A%3Cpath%20d%3D%27M485%20455c42-75%20105-115%20190-130h150c82%2015%20145%2055%20190%20130H485z%27%20fill%3D%27%2394a3b8%27/%3E%0A%3Ccircle%20cx%3D%27420%27%20cy%3D%27625%27%20r%3D%2772%27%20fill%3D%27%23334155%27/%3E%0A%3Ccircle%20cx%3D%27980%27%20cy%3D%27625%27%20r%3D%2772%27%20fill%3D%27%23334155%27/%3E%0A%3Ccircle%20cx%3D%27420%27%20cy%3D%27625%27%20r%3D%2734%27%20fill%3D%27%23cbd5e1%27/%3E%0A%3Ccircle%20cx%3D%27980%27%20cy%3D%27625%27%20r%3D%2734%27%20fill%3D%27%23cbd5e1%27/%3E%0A%3Ctext%20x%3D%27700%27%20y%3D%27190%27%20text-anchor%3D%27middle%27%20font-family%3D%27Arial%27%20font-size%3D%2744%27%20font-weight%3D%27700%27%20fill%3D%27%23334155%27%3EFOTO%20OFICIAL%20DEL%20VEH%C3%8DCULO%3C/text%3E%0A%3Ctext%20x%3D%27700%27%20y%3D%27245%27%20text-anchor%3D%27middle%27%20font-family%3D%27Arial%27%20font-size%3D%2726%27%20fill%3D%27%2364748b%27%3ECargala%20desde%20Cat%C3%A1logo%20editable%3C/text%3E%0A%3C/svg%3E";
@@ -625,19 +604,18 @@ export default function App() {
       try {
         setEstadoNube("conectando");
 
-        const respuesta = await fetch(
-          `${SUPABASE_PROPUESTAS_URL}?select=*&order=created_at.desc`,
-          {
-            headers: cabecerasSupabase,
-          }
-        );
+        const { data: filas, error } = await supabase
+          .from("propuestas")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-        if (!respuesta.ok) {
-          throw new Error(`Supabase respondió ${respuesta.status}`);
+        if (error) {
+          throw error;
         }
 
-        const filas = (await respuesta.json()) as PropuestaFila[];
-        const propuestasNube = filas.map(filaAPropuesta);
+        const propuestasNube = ((filas ?? []) as PropuestaFila[]).map(
+          filaAPropuesta
+        );
         setPropuestas(propuestasNube);
         localStorage.setItem(
           STORAGE_PROPUESTAS,
@@ -802,42 +780,28 @@ export default function App() {
     setPantalla("vistaCliente");
     window.scrollTo(0, 0);
 
- try {
-  setEstadoNube("conectando");
+    try {
+      setEstadoNube("conectando");
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+      const { error } = await supabase
+        .from("propuestas")
+        .insert(propuestaAFila(propuesta, modeloSeleccionado, asesor));
 
-  if (!session) {
-    throw new Error("No hay una sesión iniciada.");
-  }
+      if (error) {
+        throw error;
+      }
 
-  const respuesta = await fetch(SUPABASE_PROPUESTAS_URL, {
-    method: "POST",
-    headers: {
-      ...cabecerasSupabase,
-      Authorization: `Bearer ${session.access_token}`,
-      Prefer: "return=minimal",
-    },
-    body: JSON.stringify(
-      propuestaAFila(propuesta, modeloSeleccionado, asesor)
-    ),
-  });
-
-  if (!respuesta.ok) {
-    const detalle = await respuesta.text();
-    throw new Error(detalle || `Error ${respuesta.status}`);
-  }
-
-  setEstadoNube("sincronizado");
+      setEstadoNube("sincronizado");
     } catch (error) {
       console.error("No se pudo guardar en Supabase:", error);
       setEstadoNube(navigator.onLine ? "error" : "offline");
-     const mensajeError =
-  error instanceof Error ? error.message : "Error desconocido";
 
-alert("PRUEBA NUEVA - error al sincronizar");
+      const mensajeError =
+        error instanceof Error ? error.message : "Error desconocido";
+
+      alert(
+        `La propuesta quedó guardada en este dispositivo, pero no se pudo sincronizar con la nube.\n\nError: ${mensajeError}`
+      );
     }
   };
 
@@ -858,17 +822,13 @@ alert("PRUEBA NUEVA - error al sincronizar");
     try {
       setEstadoNube("conectando");
 
-      const respuesta = await fetch(
-        `${SUPABASE_PROPUESTAS_URL}?id=eq.${encodeURIComponent(id)}`,
-        {
-          method: "DELETE",
-          headers: cabecerasSupabase,
-        }
-      );
+      const { error } = await supabase
+        .from("propuestas")
+        .delete()
+        .eq("datos->propuesta->>id", id);
 
-      if (!respuesta.ok) {
-        const detalle = await respuesta.text();
-        throw new Error(detalle || `Error ${respuesta.status}`);
+      if (error) {
+        throw error;
       }
 
       setEstadoNube("sincronizado");
@@ -881,6 +841,11 @@ alert("PRUEBA NUEVA - error al sincronizar");
   };
 
   const actualizarEstado = async (id: string, estado: Propuesta["estado"]) => {
+    const propuestaActual = propuestas.find((propuesta) => propuesta.id === id);
+    const propuestaActualizada = propuestaActual
+      ? { ...propuestaActual, estado }
+      : null;
+
     setPropuestas((actuales) =>
       actuales.map((propuesta) =>
         propuesta.id === id ? { ...propuesta, estado } : propuesta
@@ -891,24 +856,28 @@ alert("PRUEBA NUEVA - error al sincronizar");
       actual?.id === id ? { ...actual, estado } : actual
     );
 
+    if (!propuestaActualizada) return;
+
     try {
       setEstadoNube("conectando");
 
-      const respuesta = await fetch(
-        `${SUPABASE_PROPUESTAS_URL}?id=eq.${encodeURIComponent(id)}`,
-        {
-          method: "PATCH",
-          headers: {
-            ...cabecerasSupabase,
-            Prefer: "return=minimal",
-          },
-          body: JSON.stringify({ estado }),
-        }
-      );
+      const modelo =
+        catalogo.find((item) => item.id === propuestaActualizada.modeloId) ||
+        null;
 
-      if (!respuesta.ok) {
-        const detalle = await respuesta.text();
-        throw new Error(detalle || `Error ${respuesta.status}`);
+      const { error } = await supabase
+        .from("propuestas")
+        .update({
+          datos: {
+            propuesta: propuestaActualizada,
+            modelo,
+            asesor,
+          } satisfies PropuestaDatos,
+        })
+        .eq("datos->propuesta->>id", id);
+
+      if (error) {
+        throw error;
       }
 
       setEstadoNube("sincronizado");
@@ -1199,9 +1168,9 @@ alert("PRUEBA NUEVA - error al sincronizar");
 
   const mostrarMenu = pantalla !== "vistaCliente" && !esEnlacePublico;
 
-const cerrarSesion = async () => {
-  await supabase.auth.signOut();
-};
+  const cerrarSesion = async () => {
+    await supabase.auth.signOut();
+  };
 
   return (
     <div className={mostrarMenu ? "app" : "app app-cliente"}>
@@ -1264,13 +1233,10 @@ const cerrarSesion = async () => {
             ⚙ Configuración
             </button>
 
-           <button
-           className={pantalla === "configuracion" ? "menu-activo" : ""}
-            onClick={cerrarSesion}
-          >
+          <button onClick={cerrarSesion}>
             🚪 Cerrar sesión
           </button>
-           </aside>
+        </aside>
            )}
 
       <main className={mostrarMenu ? "content" : "content-cliente"}>
