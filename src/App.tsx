@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import "./styles.css";
-import { SUPABASE_API, HEADERS } from "./services/supabase.ts";
+
 
 type Pantalla =
   | "inicio"
