@@ -90,8 +90,8 @@ const STORAGE_PROPUESTAS = "autoquote-propuestas-v3";
 const STORAGE_CATALOGO = "autoquote-catalogo-v3";
 const STORAGE_ASESOR = "autoquote-asesor-v3";
 
-const SUPABASE_URL = "https://xxqnjtndcxnzwzvxaptz.supabase.co";
-const SUPABASE_KEY = "sb_publishable_HqV0cAET6T8c8jLRpmpt-A_OoDPYdCr";
+const SUPABASE_URL = "https://bkvxzsxgwqcztkgxrfcp.supabase.co";
+const SUPABASE_KEY = "sb_publishable_bkcSlYmEqO-_twwZzCqpGA_oagnye44";
 const SUPABASE_PROPUESTAS_URL = `${SUPABASE_URL}/rest/v1/propuestas`;
 
 type EstadoNube = "conectando" | "sincronizado" | "offline" | "error";
