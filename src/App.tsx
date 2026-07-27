@@ -1254,11 +1254,11 @@ const cerrarSesion = async () => {
             ⚙ Configuración
             </button>
 
-            <button
-           className="boton-secundario"
+           <button
+           className={pantalla === "configuracion" ? "menu-activo" : ""}
             onClick={cerrarSesion}
           >
-           🚪 Cerrar sesión
+            🚪 Cerrar sesión
           </button>
            </aside>
            )}
