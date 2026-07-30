@@ -33,8 +33,13 @@ function Root() {
     return <div>Cargando...</div>;
   }
 
-  return session ? <App /> : <Login />;
-}
+const parametroPublico = new URLSearchParams(
+  window.location.hash.replace(/^#/, "")
+).get("propuesta");
+
+const esEnlacePublico = Boolean(parametroPublico);
+
+return session || esEnlacePublico ? <App /> : <Login />;}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
