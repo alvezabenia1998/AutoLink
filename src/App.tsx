@@ -472,8 +472,13 @@ export default function App() {
   const [propuestaAbierta, setPropuestaAbierta] = useState<Propuesta | null>(
     null
   );
-  const [esEnlacePublico, setEsEnlacePublico] = useState(false);
-  const [estadoNube, setEstadoNube] = useState<EstadoNube>("conectando");
+const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
+  const parametroPublico = new URLSearchParams(
+    window.location.hash.replace(/^#/, "")
+  ).get("propuesta");
+
+  return Boolean(parametroPublico);
+});  const [estadoNube, setEstadoNube] = useState<EstadoNube>("conectando");
 
   const [cliente, setCliente] = useState("");
   const [telefono, setTelefono] = useState("");
