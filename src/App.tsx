@@ -3,6 +3,7 @@ import type { ChangeEvent } from "react";
 import { supabase } from "./services/supabase";
 import "./styles.css";
 import { obtenerPerfil, guardarPerfil } from "./services/perfilService";
+import Sidebar from "./components/layout/Sidebar";
 
 type Pantalla =
   | "inicio"
@@ -559,30 +560,9 @@ export default function App() {
         window.location.hash.replace(/^#/, "")
       ).get("propuesta");
 
-      if (parametroPublico) {
-        const datosPublicos = decodificarEnlacePublico(parametroPublico);
-
-        if (
-          datosPublicos?.propuesta &&
-          datosPublicos?.modelo &&
-          datosPublicos?.asesor
-        ) {
-          setCatalogo([datosPublicos.modelo]);
-          setAsesor(datosPublicos.asesor);
-          setPropuestaAbierta(datosPublicos.propuesta);
-          setModeloId(datosPublicos.modelo.id);
-          setVersion(datosPublicos.propuesta.version);
-          setColorId(datosPublicos.propuesta.colorId);
-          setPantalla("vistaCliente");
-          setEsEnlacePublico(true);
-          setEstadoNube("sincronizado");
-          return;
-        }
-      }
-
-      const catalogoGuardado = localStorage.getItem(STORAGE_CATALOGO);
       const asesorGuardado = localStorage.getItem(STORAGE_ASESOR);
-
+      const catalogoGuardado = localStorage.getItem(STORAGE_CATALOGO);
+      
       if (catalogoGuardado) {
         try {
           const catalogoParseado = JSON.parse(catalogoGuardado);
@@ -602,43 +582,73 @@ export default function App() {
         } catch {}
       }
 
-      try {
-        setEstadoNube("conectando");
+try {
+  setEstadoNube("conectando");
 
-        const { data: filas, error } = await supabase
-          .from("propuestas")
-          .select("*")
-          .order("created_at", { ascending: false });
+  const { data: filas, error } = await supabase
+    .from("propuestas")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-        if (error) {
-          throw error;
+  if (error) {
+    throw error;
+  }
+
+  const propuestasNube = ((filas ?? []) as PropuestaFila[]).map(
+    filaAPropuesta
+  );
+
+  setPropuestas(propuestasNube);
+
+  if (parametroPublico) {
+    const propuestaEncontrada = propuestasNube.find(
+      (propuesta) => propuesta.id === parametroPublico
+    );
+
+    if (propuestaEncontrada) {
+      setPropuestaAbierta(propuestaEncontrada);
+      setEsEnlacePublico(true);
+       setPantalla("vistaCliente");
+    }
+  }
+
+  localStorage.setItem(
+    STORAGE_PROPUESTAS,
+    JSON.stringify(propuestasNube)
+  );
+
+  setEstadoNube("sincronizado");
+} catch (error) {
+  console.error(
+    "No se pudieron cargar las propuestas de Supabase:",
+    error
+  );
+
+  const propuestasGuardadas =
+    localStorage.getItem(STORAGE_PROPUESTAS);
+
+  if (propuestasGuardadas) {
+    try {
+      const propuestasLocales: Propuesta[] =
+        JSON.parse(propuestasGuardadas);
+
+      setPropuestas(propuestasLocales);
+
+      if (parametroPublico) {
+        const propuestaEncontrada = propuestasLocales.find(
+          (propuesta) => propuesta.id === parametroPublico
+        );
+
+        if (propuestaEncontrada) {
+          setPropuestaAbierta(propuestaEncontrada);
+          setEsEnlacePublico(true);
         }
-
-        const propuestasNube = ((filas ?? []) as PropuestaFila[]).map(
-          filaAPropuesta
-        );
-        setPropuestas(propuestasNube);
-        localStorage.setItem(
-          STORAGE_PROPUESTAS,
-          JSON.stringify(propuestasNube)
-        );
-        setEstadoNube("sincronizado");
-      } catch (error) {
-        console.error(
-          "No se pudieron cargar las propuestas de Supabase:",
-          error
-        );
-
-        const propuestasGuardadas = localStorage.getItem(STORAGE_PROPUESTAS);
-        if (propuestasGuardadas) {
-          try {
-            setPropuestas(JSON.parse(propuestasGuardadas));
-          } catch {}
-        }
-
-        setEstadoNube(navigator.onLine ? "error" : "offline");
       }
-    };
+    } catch {}
+  }
+
+  setEstadoNube(navigator.onLine ? "error" : "offline");
+}    };
 
     iniciar();
   }, []);
@@ -945,24 +955,10 @@ export default function App() {
     alert("Resumen copiado.");
   };
 
-  const obtenerEnlacePropuesta = (propuesta: Propuesta) => {
-    const modelo =
-      catalogo.find((item) => item.id === propuesta.modeloId) || catalogo[0];
-
-    if (!modelo) {
-      throw new Error("No se encontró el modelo de la propuesta.");
-    }
-
-    const datos: EnlacePublicoPayload = {
-      propuesta,
-      modelo,
-      asesor,
-    };
-
-    const base = `${window.location.origin}${window.location.pathname}`;
-    return `${base}#propuesta=${codificarEnlacePublico(datos)}`;
-  };
-
+const obtenerEnlacePropuesta = (propuesta: Propuesta) => {
+  const base = `${window.location.origin}${window.location.pathname}`;
+  return `${base}#propuesta=${encodeURIComponent(propuesta.id)}`;
+};
   const copiarEnlacePropuesta = async (propuesta: Propuesta) => {
     try {
       const enlace = obtenerEnlacePropuesta(propuesta);
@@ -1189,107 +1185,62 @@ export default function App() {
       )}
 
       {mostrarMenu && (
-        <aside className="sidebar">
-          <div className="marca">
-            <div className="marca-icono">N</div>
-            <div>
-              <h2>Nexora</h2>
-              <small>Propuestas comerciales</small>
-            </div>
-          </div>
+  <Sidebar
+    pantalla={pantalla}
+    propuestas={propuestas}
+    abrirNuevaPropuesta={abrirNuevaPropuesta}
+    setPantalla={setPantalla}
+    cerrarSesion={cerrarSesion}
+  />
+)}
+<main className="content">
+          {pantalla === "inicio" && (
+  <Inicio
+    propuestas={propuestas}
+    catalogo={catalogo}
+    abrirNuevaPropuesta={abrirNuevaPropuesta}
+    abrirPropuesta={abrirPropuesta}
+    asesor={asesor}
+  />
+)}
 
-          <button
-            className={pantalla === "nueva" ? "menu-activo" : "menu-nueva"}
-            onClick={abrirNuevaPropuesta}
-          >
-            ＋ Nueva propuesta
-          </button>
+{pantalla === "propuestas" && (
+  <ListaPropuestas
+    propuestas={propuestas}
+    catalogo={catalogo}
+    abrirNuevaPropuesta={abrirNuevaPropuesta}
+    abrirPropuesta={abrirPropuesta}
+    eliminarPropuesta={eliminarPropuesta}
+  />
+)}
 
-          <button
-            className={pantalla === "inicio" ? "menu-activo" : ""}
-            onClick={() => setPantalla("inicio")}
-          >
-            ⌂ Inicio
-          </button>
-
-          <button
-            className={pantalla === "propuestas" ? "menu-activo" : ""}
-            onClick={() => setPantalla("propuestas")}
-          >
-            ▤ Propuestas
-            <span className="contador-menu">{propuestas.length}</span>
-          </button>
-
-          <button
-            className={pantalla === "catalogo" ? "menu-activo" : ""}
-            onClick={() => setPantalla("catalogo")}
-          >
-            🚘 Catálogo editable
-          </button>
-
-          <button
-            className={pantalla === "configuracion" ? "menu-activo" : ""}
-            onClick={() => setPantalla("configuracion")}
-          >
-            ⚙ Configuración
-            </button>
-
-          <button onClick={cerrarSesion}>
-            🚪 Cerrar sesión
-          </button>
-        </aside>
-           )}
-
-      <main className={mostrarMenu ? "content" : "content-cliente"}>
-        {pantalla === "inicio" && (
-          <Inicio
-  propuestas={propuestas}
-  catalogo={catalogo}
-  abrirNuevaPropuesta={abrirNuevaPropuesta}
-  abrirPropuesta={abrirPropuesta}
-  asesor={asesor}
-/>
-        )}
-
-        {pantalla === "propuestas" && (
-          <ListaPropuestas
-            propuestas={propuestas}
-            catalogo={catalogo}
-            abrirNuevaPropuesta={abrirNuevaPropuesta}
-            abrirPropuesta={abrirPropuesta}
-            eliminarPropuesta={eliminarPropuesta}
-          />
-        )}
-
-        {pantalla === "catalogo" && (
-          <EditorCatalogo
-            catalogo={catalogo}
-            modeloEditando={modeloEditando}
-            modeloEditandoId={modeloEditandoId}
-            setModeloEditandoId={setModeloEditandoId}
-            guardarModeloEditado={guardarModeloEditado}
-            agregarModelo={agregarModelo}
-            borrarModelo={borrarModelo}
-            agregarColor={agregarColor}
-            actualizarColor={actualizarColor}
-            borrarColor={borrarColor}
-            subirImagenColor={subirImagenColor}
-            agregarCargador={agregarCargador}
-            actualizarCargador={actualizarCargador}
-            borrarCargador={borrarCargador}
-            subirImagenCargador={subirImagenCargador}
-          />
-        )}
-
-        {pantalla === "configuracion" && (
-          <Configuracion
-            asesor={asesor}
-            setAsesor={setAsesor}
-            subirFotoAsesor={subirFotoAsesor}
-            subirLogo={subirLogo}
-          />
-        )}
-
+{pantalla === "catalogo" && (
+  <EditorCatalogo
+    catalogo={catalogo}
+    modeloEditando={modeloEditando}
+    modeloEditandoId={modeloEditandoId}
+    setModeloEditandoId={setModeloEditandoId}
+    guardarModeloEditado={guardarModeloEditado}
+    agregarModelo={agregarModelo}
+    borrarModelo={borrarModelo}
+    agregarColor={agregarColor}
+    actualizarColor={actualizarColor}
+    borrarColor={borrarColor}
+    subirImagenColor={subirImagenColor}
+    agregarCargador={agregarCargador}
+    actualizarCargador={actualizarCargador}
+    borrarCargador={borrarCargador}
+    subirImagenCargador={subirImagenCargador}
+  />
+)}
+{pantalla === "configuracion" && (
+  <Configuracion
+    asesor={asesor}
+    setAsesor={setAsesor}
+    subirFotoAsesor={subirFotoAsesor}
+    subirLogo={subirLogo}
+  />
+)}
         {pantalla === "nueva" && (
           <>
             <header className="encabezado">
@@ -2770,10 +2721,10 @@ function VistaComercial({
           <div className="aqv8-advisor-profile">
             <img src={asesor.foto} alt={asesor.nombre} />
             <div>
-              <span>Tu asesor comercial</span>
-              <h2>{asesor.nombre}</h2>
-              <p>{asesor.cargo}</p>
-              <small>● En línea · Atención personalizada</small>
+            <span>Tu asesor comercial</span>
+            <h2>{asesor.nombre}</h2>
+            <p>{asesor.cargo}</p>
+            <small>● En línea · Atención personalizada</small>
             </div>
           </div>
 

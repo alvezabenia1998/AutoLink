@@ -1,4 +1,4 @@
-
+import "../../styles/sidebar.css";
 
 type SidebarProps = {
   pantalla: string;
