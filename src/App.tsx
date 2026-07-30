@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import { supabase } from "./services/supabase";
 import "./styles.css";
-import { obtenerPerfil, guardarPerfil } from "./services/perfilService";
 import Sidebar from "./components/layout/Sidebar";
 
 type Pantalla =
@@ -179,47 +178,6 @@ const FOTO_CARGADOR_ALTERNATIVA =
 
 const crearId = (prefijo: string) =>
   `${prefijo}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-
-type EnlacePublicoPayload = {
-  propuesta: Propuesta;
-  modelo: ModeloVehiculo;
-  asesor: Asesor;
-};
-
-const codificarEnlacePublico = (datos: EnlacePublicoPayload) => {
-  const texto = JSON.stringify(datos);
-  const bytes = new TextEncoder().encode(texto);
-  let binario = "";
-
-  bytes.forEach((byte) => {
-    binario += String.fromCharCode(byte);
-  });
-
-  return btoa(binario)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
-};
-
-const decodificarEnlacePublico = (
-  valor: string
-): EnlacePublicoPayload | null => {
-  try {
-    const normalizado = valor.replace(/-/g, "+").replace(/_/g, "/");
-    const relleno = normalizado.padEnd(
-      normalizado.length + ((4 - (normalizado.length % 4)) % 4),
-      "="
-    );
-    const binario = atob(relleno);
-    const bytes = Uint8Array.from(binario, (caracter) =>
-      caracter.charCodeAt(0)
-    );
-    const texto = new TextDecoder().decode(bytes);
-    return JSON.parse(texto) as EnlacePublicoPayload;
-  } catch {
-    return null;
-  }
-};
 
 const catalogoInicial: ModeloVehiculo[] = [
   {
