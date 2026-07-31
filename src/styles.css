@@ -3900,13 +3900,14 @@ a {
     object-fit: contain;
   }
 
-  .aqv8-whatsapp {
-    right: 16px;
-    bottom: 20px;
-    padding: 14px 20px;
-    font-size: 16px;
-  }
-
+.aqv8-whatsapp {
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+  padding: 14px 20px;
+  font-size: 16px;
+}
   .aqv8-advisor {
     gap: 16px;
   }
@@ -3941,4 +3942,25 @@ html {
 .aqv8-page small,
 .aqv8-page label {
   opacity: 1;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: #f3f4f6;
+}
+
+.aqv8-page {
+  color-scheme: light;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.aqv8-page input,
+.aqv8-page button,
+.aqv8-page select,
+.aqv8-page textarea {
+  color-scheme: light;
 }
