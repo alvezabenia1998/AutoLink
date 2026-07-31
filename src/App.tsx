@@ -2358,7 +2358,6 @@ function Configuracion({
         <div className="subidas-configuracion">
           <div>
             <h3>Foto del asesor</h3>
-            <img src={asesor.foto} alt={asesor.nombre} />
             <label className="boton-subir">
               Cambiar foto
               <input type="file" accept="image/*" onChange={subirFotoAsesor} />
