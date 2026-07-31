@@ -3532,10 +3532,14 @@ a {
     padding: 17px;
   }
 
-  .aqv8-floating-whatsapp {
-    right: 15px;
-    bottom: 14px;
-  }
+.aqv8-floating-whatsapp {
+  right: 12px;
+  left: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: auto;
+  max-width: none;
+  box-sizing: border-box;
+}
 }
 
 @media (max-width: 390px) {
