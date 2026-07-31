@@ -770,10 +770,12 @@ if (propuestaEncontrada) {
     try {
       setEstadoNube("conectando");
 
-      const { error } = await supabase
-        .from("propuestas")
-        .insert(propuestaAFila(propuesta, modeloSeleccionado, asesor));
+    const datos = propuestaAFila(propuesta, modeloSeleccionado, asesor);
+    console.log("DATOS A SUPABASE:", datos);
 
+    const { error } = await supabase
+      .from("propuestas")
+      .insert(datos);
       if (error) {
         throw error;
       }
@@ -2416,7 +2418,7 @@ function VistaComercial({
 const modelo =
   modeloGuardado ||
   catalogo.find((item) => item.id === propuesta.modeloId);
-  
+
   if (!modelo) {
     return (
       <div style={{ padding: "40px", textAlign: "center" }}>
