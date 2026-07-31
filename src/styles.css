@@ -3923,3 +3923,22 @@ a {
     text-align: center;
   }
 }
+html {
+  color-scheme: light;
+}
+
+.aqv8-page,
+.aqv8-page * {
+  -webkit-text-fill-color: initial;
+}
+
+.aqv8-page h1,
+.aqv8-page h2,
+.aqv8-page h3,
+.aqv8-page p,
+.aqv8-page span,
+.aqv8-page strong,
+.aqv8-page small,
+.aqv8-page label {
+  opacity: 1;
+}
