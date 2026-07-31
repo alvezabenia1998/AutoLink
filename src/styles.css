@@ -3964,3 +3964,32 @@ body {
 .aqv8-page textarea {
   color-scheme: light;
 }
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.aqv8-page {
+  color-scheme: light;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.aqv8-page h1,
+.aqv8-page h2,
+.aqv8-page h3,
+.aqv8-page p,
+.aqv8-page span,
+.aqv8-page strong,
+.aqv8-page small,
+.aqv8-page label {
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+}
