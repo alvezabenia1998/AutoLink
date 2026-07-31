@@ -2414,6 +2414,7 @@ function VistaComercial({
   compartirEnlace: (propuesta: Propuesta) => void;
   esEnlacePublico: boolean;
 }) {
+
 const modelo =
   modeloGuardado ||
   catalogo.find((item) => item.id === propuesta.modeloId);
@@ -2426,11 +2427,13 @@ const modelo =
       </div>
     );
   }
-
+  const [colorActivoId, setColorActivoId] = useState(propuesta.colorId);
+  const [cambiandoImagen, setCambiandoImagen] = useState(false);
   const color =
-    modelo.colores.find((item) => item.id === propuesta.colorId) ||
-    modelo.colores[0];
-      const precioFinal = Math.max(
+  modelo.colores.find((item) => item.id === colorActivoId) ||
+  modelo.colores[0];
+
+        const precioFinal = Math.max(
     propuesta.precioLista - propuesta.bonificacion,
     0
   );
@@ -2511,6 +2514,7 @@ const modelo =
 
           <div className="aqv8-car-frame">
             <img
+              className={cambiandoImagen ? "cambiando" : ""}
               src={color.imagen}
               alt={`${modelo.nombre} ${color.nombre}`}
               onError={(evento) => {
@@ -2518,7 +2522,6 @@ const modelo =
               }}
             />
           </div>
-
           <div className="aqv8-color-row">
             <div>
               <span>Color seleccionado</span>
@@ -2526,15 +2529,23 @@ const modelo =
             </div>
 
             <div className="aqv8-swatches">
-              {modelo.colores.map((opcion) => (
-                <i
-                  key={opcion.id}
-                  className={opcion.id === color.id ? "activo" : ""}
-                  style={{ backgroundColor: opcion.codigo }}
-                  title={opcion.nombre}
-                />
-              ))}
-            </div>
+          {modelo.colores.map((opcion) => (
+            <button
+              type="button"
+              key={opcion.id}
+              className={opcion.id === color.id ? "activo" : ""}
+              style={{ backgroundColor: opcion.codigo }}
+              title={opcion.nombre}
+              aria-label={`Ver color ${opcion.nombre}`}
+          onClick={() => {
+            setCambiandoImagen(true);
+
+            setTimeout(() => {
+              setColorActivoId(opcion.id);
+              setCambiandoImagen(false);
+            }, 180);
+          }}            />
+          ))}            </div>
           </div>
         </section>
 

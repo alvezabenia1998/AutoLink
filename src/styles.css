@@ -2858,6 +2858,11 @@ a {
   height: 430px;
   object-fit: cover;
   display: block;
+  transition: opacity .35s ease;
+}
+
+.aqv8-car-frame img.cambiando {
+  opacity: 0;
 }
 
 .aqv8-color-row {
@@ -2890,16 +2895,18 @@ a {
   gap: 12px;
 }
 
-.aqv8-swatches i {
+.aqv8-swatches button {
   display: block;
   width: 39px;
   height: 39px;
   border: 3px solid #fff;
   border-radius: 50%;
   box-shadow: 0 0 0 1px #cbd2da;
+  cursor: pointer;
+  padding: 0;
 }
 
-.aqv8-swatches i.activo {
+.aqv8-swatches button.activo {
   box-shadow: 0 0 0 2px var(--aqv8-green);
 }
 
@@ -3833,4 +3840,86 @@ a {
   min-height:48px;
   font-size:17px;
   font-weight:700;
+}
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .aqv8-page,
+  .aqv8-shell,
+  .aqv8-container {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+    box-sizing: border-box;
+  }
+
+  .aqv8-header {
+    min-height: auto;
+    padding: 18px 20px;
+  }
+
+  .aqv8-header-actions {
+    gap: 8px;
+  }
+
+  .aqv8-header-actions button,
+  .aqv8-header-actions a {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .aqv8-hero,
+  .aqv8-card {
+    padding: 24px 18px;
+    border-radius: 22px;
+  }
+
+  .aqv8-hero h1 {
+    font-size: 30px;
+    line-height: 1.1;
+  }
+
+  .aqv8-hero h2 {
+    font-size: 28px;
+    line-height: 1.1;
+  }
+
+  .aqv8-hero p {
+    font-size: 17px;
+    line-height: 1.5;
+  }
+
+  .aqv8-image,
+  .aqv8-vehicle-image,
+  .aqv8-media img {
+    width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+  }
+
+  .aqv8-whatsapp {
+    right: 16px;
+    bottom: 20px;
+    padding: 14px 20px;
+    font-size: 16px;
+  }
+
+  .aqv8-advisor {
+    gap: 16px;
+  }
+
+  .aqv8-advisor-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .aqv8-advisor-actions button,
+  .aqv8-advisor-actions a {
+    width: 100%;
+    text-align: center;
+  }
 }
