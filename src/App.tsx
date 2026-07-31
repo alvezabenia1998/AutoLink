@@ -475,8 +475,8 @@ export default function App() {
   const [modeloPropuestaAbierta, setModeloPropuestaAbierta] =
   useState<ModeloVehiculo | null>(null);
 
-const [asesorPropuestaAbierta, setAsesorPropuestaAbierta] =
-  useState<Asesor | null>(null);
+const [, setAsesorPropuestaAbierta] =
+  useState<Asesor | null>(null);  useState<Asesor | null>(null);
 const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
   const parametroPublico = new URLSearchParams(
     window.location.hash.replace(/^#/, "")
