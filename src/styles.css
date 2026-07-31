@@ -3532,14 +3532,10 @@ a {
     padding: 17px;
   }
 
-.aqv8-floating-whatsapp {
-  right: 12px;
-  left: 12px;
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  width: auto;
-  max-width: none;
-  box-sizing: border-box;
-}
+  .aqv8-floating-whatsapp {
+    right: 15px;
+    bottom: 14px;
+  }
 }
 
 @media (max-width: 390px) {
@@ -3905,14 +3901,13 @@ a {
   }
 
 .aqv8-whatsapp {
-  right: 12px;
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  max-width: calc(100vw - 24px);
+  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
   padding: 14px 20px;
   font-size: 16px;
-}
-  .aqv8-advisor {
+  }  
+.aqv8-advisor {
     gap: 16px;
   }
 
