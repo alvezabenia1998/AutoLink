@@ -472,6 +472,11 @@ export default function App() {
   const [propuestaAbierta, setPropuestaAbierta] = useState<Propuesta | null>(
     null
   );
+  const [modeloPropuestaAbierta, setModeloPropuestaAbierta] =
+  useState<ModeloVehiculo | null>(null);
+
+const [asesorPropuestaAbierta, setAsesorPropuestaAbierta] =
+  useState<Asesor | null>(null);
 const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
   const parametroPublico = new URLSearchParams(
     window.location.hash.replace(/^#/, "")
@@ -568,12 +573,20 @@ try {
       (propuesta) => propuesta.id === parametroPublico
     );
 
-    if (propuestaEncontrada) {
-      setPropuestaAbierta(propuestaEncontrada);
-      setEsEnlacePublico(true);
-       setPantalla("vistaCliente");
-    }
-  }
+if (propuestaEncontrada) {
+  setPropuestaAbierta(propuestaEncontrada);
+
+  const filaOriginal = filas?.find(
+    (fila) => fila.datos?.propuesta?.id === propuestaEncontrada.id
+  );
+
+  setModeloPropuestaAbierta(filaOriginal?.datos?.modelo ?? null);
+  setAsesorPropuestaAbierta(filaOriginal?.datos?.asesor ?? asesor);
+
+  setEsEnlacePublico(true);
+  setPantalla("vistaCliente");
+} 
+ }
 
   localStorage.setItem(
     STORAGE_PROPUESTAS,
@@ -779,12 +792,16 @@ try {
     }
   };
 
-  const abrirPropuesta = (propuesta: Propuesta) => {
-    setPropuestaAbierta(propuesta);
-    setPantalla("vistaCliente");
-    window.scrollTo(0, 0);
-  };
+const abrirPropuesta = (propuesta: Propuesta) => {
+  const modelo =
+    catalogo.find((item) => item.id === propuesta.modeloId) || null;
 
+  setPropuestaAbierta(propuesta);
+  setModeloPropuestaAbierta(modelo);
+  setAsesorPropuestaAbierta(asesor);
+  setPantalla("vistaCliente");
+  window.scrollTo(0, 0);
+};
   const eliminarPropuesta = async (id: string) => {
     if (!window.confirm("¿Querés eliminar esta propuesta?")) return;
 
@@ -1747,18 +1764,19 @@ const obtenerEnlacePropuesta = (propuesta: Propuesta) => {
         )}
 
         {pantalla === "vistaCliente" && propuestaAbierta && (
-          <VistaComercial
-            propuesta={propuestaAbierta}
-            asesor={asesor}
-            catalogo={catalogo}
-            volver={() => setPantalla("propuestas")}
-            abrirWhatsApp={abrirWhatsApp}
-            copiarResumen={copiarResumen}
-            copiarEnlace={copiarEnlacePropuesta}
-            compartirEnlace={compartirEnlacePropuesta}
-            esEnlacePublico={esEnlacePublico}
-          />
-        )}
+      <VistaComercial
+        propuesta={propuestaAbierta}
+        asesor={asesor}
+        catalogo={catalogo}
+        modeloGuardado={modeloPropuestaAbierta}
+        volver={() => setPantalla("propuestas")}
+        abrirWhatsApp={abrirWhatsApp}
+        copiarResumen={copiarResumen}
+        copiarEnlace={copiarEnlacePropuesta}
+        compartirEnlace={compartirEnlacePropuesta}
+        esEnlacePublico={esEnlacePublico}
+      />       
+       )}
       </main>
     </div>
   );
@@ -2373,6 +2391,7 @@ function VistaComercial({
   propuesta,
   asesor,
   catalogo,
+   modeloGuardado,
   volver,
   abrirWhatsApp,
   copiarResumen,
@@ -2383,6 +2402,7 @@ function VistaComercial({
   propuesta: Propuesta;
   asesor: Asesor;
   catalogo: ModeloVehiculo[];
+  modeloGuardado: ModeloVehiculo | null;
   volver: () => void;
   abrirWhatsApp: (
     propuesta: Propuesta,
@@ -2393,16 +2413,23 @@ function VistaComercial({
   compartirEnlace: (propuesta: Propuesta) => void;
   esEnlacePublico: boolean;
 }) {
-  const modelo =
-    catalogo.find((item) => item.id === propuesta.modeloId) || catalogo[0];
+const modelo =
+  modeloGuardado ||
+  catalogo.find((item) => item.id === propuesta.modeloId);
+  
+  if (!modelo) {
+    return (
+      <div style={{ padding: "40px", textAlign: "center" }}>
+        <h2>No se encontró el vehículo</h2>
+        <p>Esta propuesta fue creada con un modelo que ya no existe.</p>
+      </div>
+    );
+  }
 
   const color =
-    modelo?.colores.find((item) => item.id === propuesta.colorId) ||
-    modelo?.colores[0];
-
-  if (!modelo || !color) return null;
-
-  const precioFinal = Math.max(
+    modelo.colores.find((item) => item.id === propuesta.colorId) ||
+    modelo.colores[0];
+      const precioFinal = Math.max(
     propuesta.precioLista - propuesta.bonificacion,
     0
   );
