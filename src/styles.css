@@ -3908,9 +3908,23 @@ a {
   font-size: 16px;
   }  
 .aqv8-advisor {
-    gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  padding: 22px 19px;
   }
 
+.aqv8-advisor-actions {
+  width: 100%;
+  min-width: 0;
+  }   
+
+.aqv8-advisor-actions button,
+.aqv8-advisor-actions a {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  }
   .aqv8-advisor-actions {
     display: grid;
     grid-template-columns: 1fr;
