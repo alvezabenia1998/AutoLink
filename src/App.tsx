@@ -2711,7 +2711,6 @@ const modelo =
 
         <section className="aqv8-advisor">
           <div className="aqv8-advisor-profile">
-            <img src={asesor.foto} alt={asesor.nombre} />
             <div>
             <span>Tu asesor comercial</span>
             <h2>{asesor.nombre}</h2>
