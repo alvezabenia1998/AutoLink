@@ -3995,14 +3995,13 @@ body,
   color: #111827;
 }
 
-.aqv8-page h1,
-.aqv8-page h2,
-.aqv8-page h3,
-.aqv8-page p,
-.aqv8-page span,
-.aqv8-page strong,
-.aqv8-page small,
-.aqv8-page label {
-  color: inherit;
-  -webkit-text-fill-color: currentColor;
+.aqv8-model {
+  color: #111827;
+}
+
+.aqv8-model .aqv8-version,
+.aqv8-model .aqv8-version span,
+.aqv8-model .aqv8-version strong {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
 }
