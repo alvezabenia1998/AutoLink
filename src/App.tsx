@@ -543,6 +543,34 @@ const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
           }
         } catch {}
       }
+      try {
+  const { data: catalogoFila, error: errorCatalogo } = await supabase
+    .from("catalogo")
+    .select("datos")
+    .eq("id", 1)
+    .maybeSingle();
+
+  if (errorCatalogo) {
+    throw errorCatalogo;
+  }
+
+  const catalogoNube = catalogoFila?.datos as ModeloVehiculo[] | undefined;
+
+  if (Array.isArray(catalogoNube) && catalogoNube.length > 0) {
+    setCatalogo(catalogoNube);
+    setModeloId(catalogoNube[0].id);
+    setVersion(catalogoNube[0].versiones[0] || "GS");
+    setColorId(catalogoNube[0].colores[0]?.id || "");
+    setModeloEditandoId(catalogoNube[0].id);
+
+    localStorage.setItem(
+      STORAGE_CATALOGO,
+      JSON.stringify(catalogoNube)
+    );
+  }
+} catch (error) {
+  console.error("No se pudo cargar el catálogo desde Supabase:", error);
+}
 
       if (asesorGuardado) {
         try {
@@ -633,9 +661,43 @@ if (propuestaEncontrada) {
     localStorage.setItem(STORAGE_PROPUESTAS, JSON.stringify(propuestas));
   }, [propuestas]);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_CATALOGO, JSON.stringify(catalogo));
-  }, [catalogo]);
+useEffect(() => {
+  const guardarCatalogo = async () => {
+    localStorage.setItem(
+      STORAGE_CATALOGO,
+      JSON.stringify(catalogo)
+    );
+
+    if (!catalogo.length) return;
+
+    try {
+      const { error } = await supabase
+        .from("catalogo")
+        .upsert(
+          {
+            id: 1,
+            datos: catalogo,
+          },
+          {
+            onConflict: "id",
+          }
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      console.log("Catálogo guardado en Supabase.");
+    } catch (error) {
+      console.error(
+        "No se pudo guardar el catálogo en Supabase:",
+        error
+      );
+    }
+  };
+
+  guardarCatalogo();
+}, [catalogo]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_ASESOR, JSON.stringify(asesor));
