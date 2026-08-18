@@ -475,7 +475,7 @@ export default function App() {
   const [modeloPropuestaAbierta, setModeloPropuestaAbierta] =
   useState<ModeloVehiculo | null>(null);
 
-const [, setAsesorPropuestaAbierta] =
+const [asesorPropuestaAbierta, setAsesorPropuestaAbierta] =
   useState<Asesor | null>(null);  useState<Asesor | null>(null);
 const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
   const parametroPublico = new URLSearchParams(
@@ -764,6 +764,8 @@ if (propuestaEncontrada) {
     const propuesta = construirPropuesta();
     setPropuestas((actuales) => [propuesta, ...actuales]);
     setPropuestaAbierta(propuesta);
+    setModeloPropuestaAbierta(modeloSeleccionado);
+setAsesorPropuestaAbierta(asesor);
     setPantalla("vistaCliente");
     window.scrollTo(0, 0);
 
@@ -880,33 +882,40 @@ const abrirPropuesta = (propuesta: Propuesta) => {
     }
   };
 
-  const abrirWhatsApp = (
-    propuesta: Propuesta,
-    accion: "consulta" | "reserva" | "testdrive"
-  ) => {
-    const modelo =
-      catalogo.find((item) => item.id === propuesta.modeloId) || catalogo[0];
+const abrirWhatsApp = (
+  propuesta: Propuesta,
+  accion: "consulta" | "reserva" | "testdrive"
+) => {
+  const asesorCorrecto =
+    propuestaAbierta?.id === propuesta.id && asesorPropuestaAbierta
+      ? asesorPropuestaAbierta
+      : asesor;
 
-    let mensaje = `Hola ${asesor.nombre}, vi la propuesta del BYD ${modelo?.nombre} y quiero hacerte una consulta.`;
+  const modeloCorrecto =
+    propuestaAbierta?.id === propuesta.id && modeloPropuestaAbierta
+      ? modeloPropuestaAbierta
+      : catalogo.find((item) => item.id === propuesta.modeloId) || catalogo[0];
 
-    if (accion === "reserva") {
-      mensaje = `Hola ${asesor.nombre}, quiero avanzar con la reserva del BYD ${modelo?.nombre}, versión ${propuesta.version}.`;
-    }
+  let mensaje = `Hola ${asesorCorrecto.nombre}, vi la propuesta del BYD ${modeloCorrecto?.nombre} y quiero hacerte una consulta.`;
 
-    if (accion === "testdrive") {
-      mensaje = `Hola ${asesor.nombre}, quiero coordinar un test drive del BYD ${modelo?.nombre}.`;
-    }
+  if (accion === "reserva") {
+    mensaje = `Hola ${asesorCorrecto.nombre}, quiero avanzar con la reserva del BYD ${modeloCorrecto?.nombre}, versión ${propuesta.version}.`;
+  }
 
-    actualizarEstado(propuesta.id, "Interesado");
+  if (accion === "testdrive") {
+    mensaje = `Hola ${asesorCorrecto.nombre}, quiero coordinar un test drive del BYD ${modeloCorrecto?.nombre}.`;
+  }
 
-    window.open(
-      `https://wa.me/${asesor.telefono.replace(
-        /\D/g,
-        ""
-      )}?text=${encodeURIComponent(mensaje)}`,
-      "_blank"
-    );
-  };
+  actualizarEstado(propuesta.id, "Interesado");
+
+  window.open(
+    `https://wa.me/${asesorCorrecto.telefono.replace(
+      /\D/g,
+      ""
+    )}?text=${encodeURIComponent(mensaje)}`,
+    "_blank"
+  );
+};
 
   const copiarResumen = async (propuesta: Propuesta) => {
     const modelo =
@@ -1768,7 +1777,7 @@ const obtenerEnlacePropuesta = (propuesta: Propuesta) => {
         {pantalla === "vistaCliente" && propuestaAbierta && (
       <VistaComercial
         propuesta={propuestaAbierta}
-        asesor={asesor}
+        asesor={asesorPropuestaAbierta ?? asesor}
         catalogo={catalogo}
         modeloGuardado={modeloPropuestaAbierta}
         volver={() => setPantalla("propuestas")}
