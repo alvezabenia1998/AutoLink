@@ -1120,15 +1120,52 @@ const obtenerEnlacePropuesta = (propuesta: Propuesta) => {
     setModeloEditandoId(nuevoCatalogo[0].id);
   };
 
-  const subirImagenColor = async (
-    evento: ChangeEvent<HTMLInputElement>,
-    colorIdEditar: string
-  ) => {
-    const archivo = evento.target.files?.[0];
-    if (!archivo) return;
-    const imagen = await leerArchivoComoDataURL(archivo);
+const subirImagenColor = async (
+  evento: ChangeEvent<HTMLInputElement>,
+  colorIdEditar: string
+) => {
+  const archivo = evento.target.files?.[0];
+  if (!archivo) return;
+
+  try {
+    setEstadoNube("conectando");
+
+    const extension = archivo.name.split(".").pop()?.toLowerCase() || "webp";
+
+    const nombreArchivo = `vehiculos/${modeloEditando.id}/${colorIdEditar}-${Date.now()}.${extension}`;
+
+    const { error: errorSubida } = await supabase.storage
+      .from("vehiculos")
+      .upload(nombreArchivo, archivo, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (errorSubida) {
+      throw errorSubida;
+    }
+
+    const { data } = supabase.storage
+      .from("vehiculos")
+      .getPublicUrl(nombreArchivo);
+
+    const imagen = data.publicUrl;
+
     actualizarColor(colorIdEditar, { imagen });
-  };
+
+    setEstadoNube("sincronizado");
+
+    console.log("Imagen subida correctamente:", imagen);
+  } catch (error) {
+    console.error("Error subiendo imagen a Supabase:", error);
+
+    setEstadoNube("error");
+
+    alert("No se pudo subir la imagen a la nube.");
+  } finally {
+    evento.target.value = "";
+  }
+};
 
   const subirImagenCargador = async (
     evento: ChangeEvent<HTMLInputElement>,
