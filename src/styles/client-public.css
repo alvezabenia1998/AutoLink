@@ -1,0 +1,179 @@
+.aqv8-model .aqv8-version-pill {
+  display: inline-flex !important;
+  min-height: 34px;
+  align-items: center;
+  padding: 7px 12px !important;
+  border: 1px solid #d7e0e8 !important;
+  border-radius: 999px !important;
+  background: #eef4f7 !important;
+  color: #15334f !important;
+  -webkit-text-fill-color: #15334f !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 800;
+}
+
+.aqv8-page {
+  width: 100%;
+  max-width: none;
+}
+
+.aqv8-topbar {
+  position: sticky !important;
+  top: 0;
+  z-index: 110;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding-right: clamp(20px, 4vw, 60px) !important;
+  padding-left: clamp(20px, 4vw, 60px) !important;
+}
+
+.aqv8-content {
+  width: min(100%, 1280px) !important;
+  max-width: none !important;
+  padding-right: clamp(16px, 3vw, 34px) !important;
+  padding-left: clamp(16px, 3vw, 34px) !important;
+}
+
+.aqv8-car-frame {
+  position: relative;
+}
+
+.aqv8-gallery-controls {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid rgba(15, 36, 57, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.aqv8-gallery-controls button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #0b2947;
+  color: #fff;
+  font-size: 15px;
+}
+
+.aqv8-gallery-controls span {
+  min-width: 46px;
+  color: #26384a;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.aqv8-client-nav {
+  position: sticky !important;
+  top: 82px !important;
+  z-index: 100;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  margin-right: 0;
+  margin-left: 0;
+  border-radius: 0 0 14px 14px;
+}
+
+#resumen-propuesta,
+#ficha-tecnica,
+#equipamiento-propuesta,
+#financiacion-propuesta {
+  scroll-margin-top: 152px;
+}
+
+.aqv8-tech-heading {
+  align-items: center;
+}
+
+.aqv8-tech-heading button {
+  min-width: 150px;
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.aqv8-countdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 10px 0;
+}
+
+.aqv8-countdown span {
+  display: inline-flex;
+  min-width: 62px;
+  padding: 7px 9px;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #b9e4ca;
+  border-radius: 9px;
+  background: #f0fbf4;
+  color: #31724d;
+  font-size: 10px;
+}
+
+.aqv8-countdown span b {
+  color: #0f7a43;
+  font-size: 17px;
+}
+
+.aqv8-validity.vencida {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.aqv8-validity.vencida > b {
+  background: #dc2626;
+}
+
+.aqv8-sticky-actions {
+  position: static !important;
+  display: grid;
+  width: min(calc(100% - 56px), 924px);
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 0.8fr) minmax(180px, 0.8fr);
+  align-items: center;
+  gap: 10px;
+  margin: -82px auto 26px;
+  padding: 12px;
+  border-radius: 14px;
+}
+
+.aqv8-sticky-actions > div {
+  padding: 0 8px;
+}
+
+.aqv8-sticky-actions button {
+  min-height: 44px;
+}
+
+@media (max-width: 760px) {
+  .aqv8-topbar {
+    min-height: 70px;
+  }
+
+  .aqv8-client-nav {
+    top: 70px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .aqv8-sticky-actions {
+    width: calc(100% - 28px);
+    grid-template-columns: 1fr;
+    margin: -80px auto 18px;
+  }
+
+  .aqv8-sticky-actions > div {
+    grid-column: auto;
+  }
+}

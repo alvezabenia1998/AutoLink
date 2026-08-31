@@ -33,9 +33,10 @@ export function Root() {
     return <div>Cargando...</div>;
   }
 
-const parametroPublico = new URLSearchParams(
-  window.location.hash.replace(/^#/, "")
-).get("propuesta");
+const coincidenciaRutaPublica = window.location.pathname.match(/^\/propuesta\/([^/]+)\/?$/);
+const parametroPublico = coincidenciaRutaPublica
+  ? decodeURIComponent(coincidenciaRutaPublica[1])
+  : new URLSearchParams(window.location.hash.replace(/^#/, "")).get("propuesta");
 
 const esEnlacePublico = Boolean(parametroPublico);
 const esVistaPreviaLocal =

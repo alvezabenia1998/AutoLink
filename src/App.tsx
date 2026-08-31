@@ -7,6 +7,7 @@ import {
   subirLogoPerfil,
 } from "./services/perfilService";
 import "./styles.css";
+import "./styles/client-public.css";
 import Sidebar from "./components/layout/Sidebar";
 
 type Pantalla =
@@ -29,6 +30,7 @@ type ColorVehiculo = {
   nombre: string;
   codigo: string;
   imagen: string;
+  imagenes?: string[];
 };
 
 type Cargador = {
@@ -39,6 +41,12 @@ type Cargador = {
   incluidoPorDefecto: boolean;
 };
 
+type FichaTecnica = {
+  datos: { etiqueta: string; valor: string }[];
+  equipamiento: string[];
+  url: string;
+};
+
 type ModeloVehiculo = {
   id: string;
   nombre: string;
@@ -46,6 +54,7 @@ type ModeloVehiculo = {
   versiones: string[];
   garantia: string;
   descripcion: string;
+  fichaTecnica: FichaTecnica;
   colores: ColorVehiculo[];
   cargadores: Cargador[];
 };
@@ -101,6 +110,13 @@ const STORAGE_ASESOR = "autoquote-asesor-v3";
 
 
 type EstadoNube = "conectando" | "sincronizado" | "offline" | "error";
+
+const obtenerIdPropuestaPublica = () => {
+  const coincidencia = window.location.pathname.match(/^\/propuesta\/([^/]+)\/?$/);
+  return coincidencia
+    ? decodeURIComponent(coincidencia[1])
+    : new URLSearchParams(window.location.hash.replace(/^#/, "")).get("propuesta");
+};
 
 type PropuestaDatos = {
   propuesta: Propuesta;
@@ -195,6 +211,18 @@ const catalogoInicial: ModeloVehiculo[] = [
     versiones: ["GL", "GS"],
     garantia: "6 años o 150.000 km",
     descripcion: "Compacto, eficiente y pensado para la ciudad.",
+    fichaTecnica: {
+      datos: [
+        { etiqueta: "Autonomía eléctrica", valor: "Hasta 380 km NEDC" },
+        { etiqueta: "Batería Blade", valor: "30,08 / 43,2 kWh" },
+        { etiqueta: "Carga rápida CC", valor: "65 / 85 kW" },
+        { etiqueta: "Baúl", valor: "308 litros" },
+        { etiqueta: "Dimensiones", valor: "3.990 × 1.720 × 1.590 mm" },
+        { etiqueta: "Plazas", valor: "4 pasajeros" },
+      ],
+      equipamiento: ["Pantalla giratoria de 10,1 pulgadas", "Apple CarPlay y Android Auto", "6 airbags", "Batería Blade y e-Platform 3.0"],
+      url: "https://www.byd.com/content/dam/byd-site/ar/flyers_argentina/ARGENTINA-BYD-DOLPHIN-MINI-flyer-4seats-ES-20250819.pdf",
+    },
     colores: [
       {
         id: "dm-white",
@@ -207,6 +235,11 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Sprout Green",
         codigo: "#a8c4aa",
         imagen: "/vehicles/dolphin-green.jpg",
+        imagenes: [
+          "/vehicles/dolphin-gallery-1.jpg",
+          "/vehicles/dolphin-gallery-2.jpg",
+          "/vehicles/dolphin-gallery-3.jpg",
+        ],
       },
       {
         id: "dm-black",
@@ -245,6 +278,18 @@ const catalogoInicial: ModeloVehiculo[] = [
     versiones: ["GL", "GS"],
     garantia: "6 años o 150.000 km",
     descripcion: "SUV eléctrico versátil, amplio y tecnológico.",
+    fichaTecnica: {
+      datos: [
+        { etiqueta: "Autonomía eléctrica", valor: "Hasta 380 km NEDC" },
+        { etiqueta: "Batería Blade", valor: "45,12 kWh" },
+        { etiqueta: "Potencia", valor: "174 CV" },
+        { etiqueta: "Torque", valor: "290 Nm" },
+        { etiqueta: "Aceleración 0–100", valor: "7,9 segundos" },
+        { etiqueta: "Dimensiones", valor: "4.310 × 1.830 × 1.675 mm" },
+      ],
+      equipamiento: ["Tracción delantera", "Carga rápida CC de 65 kW", "Función VTOL", "Baúl ampliable hasta 1.210 litros"],
+      url: "https://www.byd.com/content/dam/byd-site/ar/flyers_argentina/new/AR-BYD-YUAN-PRO-GL-20250828.pdf",
+    },
     colores: [
       {
         id: "yp-white",
@@ -269,6 +314,7 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Malachite Dark Cyan",
         codigo: "#174b4b",
         imagen: "/vehicles/yuan-cyan.jpg",
+        imagenes: ["/vehicles/yuan-gallery-1.jpg"],
       },
     ],
     cargadores: [
@@ -295,6 +341,18 @@ const catalogoInicial: ModeloVehiculo[] = [
     versiones: ["GL", "GS"],
     garantia: "6 años o 150.000 km",
     descripcion: "Espacio familiar con tecnología híbrida enchufable.",
+    fichaTecnica: {
+      datos: [
+        { etiqueta: "Autonomía eléctrica", valor: "71 / 100 km NEDC" },
+        { etiqueta: "Batería Blade", valor: "12,9 / 18,3 kWh" },
+        { etiqueta: "Motor eléctrico", valor: "145 kW · 300 Nm" },
+        { etiqueta: "Aceleración 0–100", valor: "8,3 / 7,9 segundos" },
+        { etiqueta: "Tanque", valor: "52 litros" },
+        { etiqueta: "Dimensiones", valor: "4.738 × 1.860 × 1.710 mm" },
+      ],
+      equipamiento: ["Tecnología Super Hybrid DM-i", "Llave digital NFC", "Función VTOL", "Pantalla central giratoria"],
+      url: "https://www.byd.com/content/dam/byd-site/ar/flyers_argentina/new/AR-BYD-SONG-PRO-20250903.pdf",
+    },
     colores: [
       {
         id: "sp-white",
@@ -319,6 +377,11 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Atlantis Blue",
         codigo: "#263e53",
         imagen: "/vehicles/song-blue.jpg",
+        imagenes: [
+          "/vehicles/song-gallery-1.jpg",
+          "/vehicles/song-gallery-2.jpg",
+          "/vehicles/song-gallery-3.jpg",
+        ],
       },
     ],
     cargadores: [
@@ -345,6 +408,18 @@ const catalogoInicial: ModeloVehiculo[] = [
     versiones: ["GS"],
     garantia: "6 años o 150.000 km",
     descripcion: "SUV compacto, eficiente y tecnológico.",
+    fichaTecnica: {
+      datos: [
+        { etiqueta: "Autonomía eléctrica", valor: "110 km NEDC" },
+        { etiqueta: "Autonomía combinada", valor: "1.100 km NEDC" },
+        { etiqueta: "Batería Blade", valor: "18,03 kWh" },
+        { etiqueta: "Potencia eléctrica", valor: "145 kW · 300 Nm" },
+        { etiqueta: "Aceleración 0–100", valor: "7,5 segundos" },
+        { etiqueta: "Baúl", valor: "435 / 1.335 litros" },
+      ],
+      equipamiento: ["Tecnología Super Hybrid DM-i", "Carga AC de 6,6 kW", "Función VTOL", "Acceso mediante tarjeta o smartphone NFC"],
+      url: "https://www.byd.com/material/byd-site/ar/atto-2-dmi/FICHA-TECNICA-ATTO2-DM-i-2026.pdf",
+    },
     colores: [
       {
         id: "a2-white",
@@ -369,6 +444,11 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Malachite Dark Cyan",
         codigo: "#174b4b",
         imagen: "/vehicles/atto-cyan.jpg",
+        imagenes: [
+          "/vehicles/atto-gallery-1.jpg",
+          "/vehicles/atto-gallery-2.jpg",
+          "/vehicles/atto-gallery-3.jpg",
+        ],
       },
     ],
     cargadores: [
@@ -395,12 +475,25 @@ const catalogoInicial: ModeloVehiculo[] = [
     versiones: ["GS"],
     garantia: "6 años o 150.000 km",
     descripcion: "Confort, seguridad y autonomía extendida.",
+    fichaTecnica: {
+      datos: [
+        { etiqueta: "Tecnología", valor: "Super Hybrid DM-i" },
+        { etiqueta: "Autonomía eléctrica", valor: "Hasta 125 km según versión" },
+        { etiqueta: "Baúl", valor: "425 / 1.440 litros" },
+        { etiqueta: "Carga rápida", valor: "30–80% en aprox. 35 min" },
+        { etiqueta: "Plazas", valor: "5 pasajeros" },
+        { etiqueta: "Tracción", valor: "Delantera" },
+      ],
+      equipamiento: ["Batería Blade", "Pantalla central giratoria", "Asistencias avanzadas a la conducción", "Habitáculo familiar de gran capacidad"],
+      url: "https://www.byd.com/es-es/car/seal-u-dm-i",
+    },
     colores: [
       {
         id: "su-white",
         nombre: "Snow White",
         codigo: "#f0f0ed",
         imagen: "/vehicles/seal-white.jpg",
+        imagenes: ["/vehicles/seal-gallery-1.png"],
       },
       {
         id: "su-time",
@@ -413,6 +506,7 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Smoke Gray",
         codigo: "#5f6267",
         imagen: "/vehicles/seal-smoke.jpg",
+        imagenes: ["/vehicles/seal-gallery-2.png"],
       },
       {
         id: "su-black",
@@ -446,12 +540,29 @@ const catalogoInicial: ModeloVehiculo[] = [
     garantia: "6 años o 150.000 km",
     descripcion:
       "Pick-up híbrida enchufable con plataforma DM-O, 437 CV y tracción integral inteligente.",
+    fichaTecnica: {
+      datos: [
+        { etiqueta: "Potencia combinada", valor: "Más de 430 CV" },
+        { etiqueta: "Torque", valor: "650 Nm" },
+        { etiqueta: "Autonomía eléctrica", valor: "100 km NEDC" },
+        { etiqueta: "Autonomía combinada", valor: "Hasta 840 km" },
+        { etiqueta: "Aceleración 0–100", valor: "5,7 segundos" },
+        { etiqueta: "Capacidad de remolque", valor: "2.500 kg" },
+      ],
+      equipamiento: ["Tracción integral eléctrica inteligente", "Más de 20 sistemas ADAS", "Cámara 360° con chasis transparente", "Modos arena, barro, nieve y montaña"],
+      url: "https://www.byd.com/ar/byd-shark",
+    },
     colores: [
       {
         id: "sh-grey",
         nombre: "Atlantis Grey",
         codigo: "#6f7478",
         imagen: "/vehicles/shark-grey.jpg",
+        imagenes: [
+          "/vehicles/shark-gallery-3.jpg",
+          "/vehicles/shark-gallery-1.jpg",
+          "/vehicles/shark-gallery-2.jpg",
+        ],
       },
       {
         id: "sh-white",
@@ -504,11 +615,17 @@ const actualizarImagenesOficiales = (catalogo: ModeloVehiculo[]) => {
 
     return {
       ...modelo,
+      fichaTecnica: referencia.fichaTecnica,
       colores: referencia.colores.map((colorOficial) => {
         const colorGuardado = modelo.colores.find(
           (color) => color.id === colorOficial.id
         );
-        return { ...colorOficial, ...colorGuardado, imagen: colorOficial.imagen };
+        return {
+          ...colorOficial,
+          ...colorGuardado,
+          imagen: colorOficial.imagen,
+          imagenes: colorOficial.imagenes,
+        };
       }),
       cargadores: referencia.cargadores.map((cargadorOficial) => {
         const cargadorGuardado = modelo.cargadores.find(
@@ -593,11 +710,7 @@ export default function App() {
   const [asesorPropuestaAbierta, setAsesorPropuestaAbierta] =
     useState<Asesor | null>(null);
   const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
-    const parametroPublico = new URLSearchParams(
-      window.location.hash.replace(/^#/, "")
-    ).get("propuesta");
-
-    return Boolean(parametroPublico);
+    return Boolean(obtenerIdPropuestaPublica());
   });
   const [estadoNube, setEstadoNube] =
     useState<EstadoNube>("conectando");
@@ -645,9 +758,7 @@ export default function App() {
 
   useEffect(() => {
     const iniciar = async () => {
-      const parametroPublico = new URLSearchParams(
-        window.location.hash.replace(/^#/, "")
-      ).get("propuesta");
+      const parametroPublico = obtenerIdPropuestaPublica();
 
       const asesorGuardado = localStorage.getItem(STORAGE_ASESOR);
       const catalogoGuardado = localStorage.getItem(STORAGE_CATALOGO);
@@ -1172,8 +1283,7 @@ const abrirWhatsApp = (
   };
 
 const obtenerEnlacePropuesta = (propuesta: Propuesta) => {
-  const base = `${window.location.origin}${window.location.pathname}`;
-  return `${base}#propuesta=${encodeURIComponent(propuesta.id)}`;
+  return `${window.location.origin}/propuesta/${encodeURIComponent(propuesta.id)}`;
 };
   const copiarEnlacePropuesta = async (propuesta: Propuesta) => {
     try {
@@ -1315,6 +1425,11 @@ const obtenerEnlacePropuesta = (propuesta: Propuesta) => {
       versiones: ["GS"],
       garantia: asesor.garantiaPredeterminada,
       descripcion: "Descripción del vehículo.",
+      fichaTecnica: {
+        datos: [],
+        equipamiento: [],
+        url: "",
+      },
       colores: [
         {
           id: crearId("color"),
@@ -2864,11 +2979,21 @@ function VistaComercial({
 
   const [colorActivoId, setColorActivoId] = useState(propuesta.colorId);
   const [cambiandoImagen, setCambiandoImagen] = useState(false);
-  const modelo =
+  const [fichaExpandida, setFichaExpandida] = useState(false);
+  const [porcentajeAnticipo, setPorcentajeAnticipo] = useState(30);
+  const [plazoSimulado, setPlazoSimulado] = useState(36);
+  const [ahora, setAhora] = useState(Date.now());
+  const [indiceGaleria, setIndiceGaleria] = useState(0);
+
+  useEffect(() => {
+    const intervalo = window.setInterval(() => setAhora(Date.now()), 1000);
+    return () => window.clearInterval(intervalo);
+  }, []);
+  const modeloBase =
     modeloGuardado ||
     catalogo.find((item) => item.id === propuesta.modeloId);
 
-  if (!modelo) {
+  if (!modeloBase) {
     return (
       <div style={{ padding: "40px", textAlign: "center" }}>
         <h2>No se encontró el vehículo</h2>
@@ -2876,9 +3001,18 @@ function VistaComercial({
       </div>
     );
   }
+  const fichaReferencia = catalogo.find((item) => item.id === propuesta.modeloId)?.fichaTecnica;
+  const modelo = {
+    ...modeloBase,
+    fichaTecnica: modeloBase.fichaTecnica ?? fichaReferencia ?? { datos: [], equipamiento: [], url: "" },
+  };
   const color =
   modelo.colores.find((item) => item.id === colorActivoId) ||
   modelo.colores[0];
+  const imagenesGaleria = Array.from(
+    new Set([color.imagen, ...(color.imagenes ?? [])])
+  );
+  const imagenGaleria = imagenesGaleria[indiceGaleria] || color.imagen;
 
         const precioFinal = Math.max(
     propuesta.precioLista - propuesta.bonificacion,
@@ -2910,6 +3044,24 @@ function VistaComercial({
       : propuesta.tipoGasto === "patentamiento-completo"
       ? "Patentamiento completo"
       : "";
+  const anticipoSimulado = Math.round((precioFinal * porcentajeAnticipo) / 100);
+  const cuotaSimulada = Math.round((precioFinal - anticipoSimulado) / plazoSimulado);
+  const fechaVencimiento =
+    new Date(propuesta.fecha).getTime() +
+    propuesta.vigenciaDias * 24 * 60 * 60 * 1000;
+  const tiempoRestante = Math.max(fechaVencimiento - ahora, 0);
+  const diasRestantes = Math.floor(tiempoRestante / 86400000);
+  const horasRestantes = Math.floor((tiempoRestante % 86400000) / 3600000);
+  const minutosRestantes = Math.floor((tiempoRestante % 3600000) / 60000);
+  const segundosRestantes = Math.floor((tiempoRestante % 60000) / 1000);
+  const propuestaVencida = tiempoRestante <= 0;
+
+  const cambiarImagenGaleria = (direccion: number) => {
+    const siguiente =
+      (indiceGaleria + direccion + imagenesGaleria.length) %
+      imagenesGaleria.length;
+    setIndiceGaleria(siguiente);
+  };
 
   return (
     <div className="aqv8-page">
@@ -2955,19 +3107,26 @@ function VistaComercial({
             <div className="aqv8-model">
               <h2>{modelo.nombre}</h2>
               <p>{modelo.tipo}</p>
-              <strong>Versión {propuesta.version}</strong>
+              <strong className="aqv8-version-pill">Versión {propuesta.version}</strong>
             </div>
           </div>
 
           <div className="aqv8-car-frame">
             <img
               className={cambiandoImagen ? "cambiando" : ""}
-              src={color.imagen}
-              alt={`${modelo.nombre} ${color.nombre}`}
+              src={imagenGaleria}
+              alt={`${modelo.nombre} en color ${color.nombre}, imagen ${indiceGaleria + 1}`}
               onError={(evento) => {
                 evento.currentTarget.src = FOTO_AUTO_ALTERNATIVA;
               }}
             />
+            {imagenesGaleria.length > 1 && (
+              <div className="aqv8-gallery-controls">
+                <button type="button" onClick={() => cambiarImagenGaleria(-1)} aria-label="Imagen anterior">←</button>
+                <span>{indiceGaleria + 1} / {imagenesGaleria.length}</span>
+                <button type="button" onClick={() => cambiarImagenGaleria(1)} aria-label="Imagen siguiente">→</button>
+              </div>
+            )}
           </div>
           <div className="aqv8-color-row">
             <div>
@@ -2989,6 +3148,7 @@ function VistaComercial({
 
             setTimeout(() => {
               setColorActivoId(opcion.id);
+              setIndiceGaleria(0);
               setCambiandoImagen(false);
             }, 180);
           }}            />
@@ -2996,7 +3156,14 @@ function VistaComercial({
           </div>
         </section>
 
-        <section className="aqv8-price-card">
+        <nav className="aqv8-client-nav" aria-label="Secciones de la propuesta">
+          <button onClick={() => document.getElementById("resumen-propuesta")?.scrollIntoView({ behavior: "smooth" })}>⌂ Resumen</button>
+          <button onClick={() => { setFichaExpandida(true); window.setTimeout(() => document.getElementById("ficha-tecnica")?.scrollIntoView({ behavior: "smooth" }), 50); }}>▤ Ficha técnica</button>
+          <button onClick={() => document.getElementById("equipamiento-propuesta")?.scrollIntoView({ behavior: "smooth" })}>◇ Equipamiento</button>
+          {propuesta.formaCompra === "credito" && <button onClick={() => document.getElementById("financiacion-propuesta")?.scrollIntoView({ behavior: "smooth" })}>◉ Financiación</button>}
+        </nav>
+
+        <section className="aqv8-price-card" id="resumen-propuesta">
           <h2>Resumen de precios</h2>
 
           <div className="aqv8-price-line">
@@ -3075,7 +3242,34 @@ function VistaComercial({
           </article>
         </section>
 
-        <section className="aqv8-section">
+        <section className="aqv8-tech-card" id="ficha-tecnica">
+          <div className="aqv8-tech-heading">
+            <div>
+              <span>CONOCÉ TU BYD</span>
+              <h2>Ficha técnica</h2>
+              <p>Principales especificaciones de la versión {propuesta.version}.</p>
+            </div>
+            <div>
+              <button type="button" onClick={() => setFichaExpandida((actual) => !actual)}>{fichaExpandida ? "Ocultar detalles" : "Ver ficha completa"}</button>
+            </div>
+          </div>
+          {fichaExpandida && (
+            <div className="aqv8-tech-content">
+              <div className="aqv8-tech-stats">
+                {modelo.fichaTecnica.datos.map((dato) => (
+                  <article key={dato.etiqueta}><span>{dato.etiqueta}</span><strong>{dato.valor}</strong></article>
+                ))}
+              </div>
+              <div className="aqv8-tech-equipment">
+                <h3>Equipamiento destacado</h3>
+                <div>{modelo.fichaTecnica.equipamiento.map((item) => <span key={item}>✓ {item}</span>)}</div>
+              </div>
+              <small>Información basada en documentación oficial BYD. Las características pueden variar según versión y disponibilidad comercial.</small>
+            </div>
+          )}
+        </section>
+
+        <section className="aqv8-section" id="financiacion-propuesta">
           <div className="aqv8-section-title">
             <span>CONDICIONES COMERCIALES</span>
             <h2>Forma de compra</h2>
@@ -3113,8 +3307,29 @@ function VistaComercial({
           )}
         </section>
 
+        {propuesta.formaCompra === "credito" && <section className="aqv8-finance-simulator">
+          <div className="aqv8-section-title">
+            <span>SIMULÁ TU OPERACIÓN</span>
+            <h2>Financiación estimada</h2>
+          </div>
+          <div className="aqv8-finance-grid">
+            <div>
+              <label>Anticipo: <strong>{porcentajeAnticipo}%</strong></label>
+              <input type="range" min="10" max="80" step="5" value={porcentajeAnticipo} onChange={(evento) => setPorcentajeAnticipo(Number(evento.target.value))} />
+              <span>{formatoUSD(anticipoSimulado)}</span>
+            </div>
+            <div>
+              <label htmlFor="plazo-simulado">Plazo</label>
+              <select id="plazo-simulado" value={plazoSimulado} onChange={(evento) => setPlazoSimulado(Number(evento.target.value))}>
+                {[12, 24, 36, 48, 60].map((plazo) => <option value={plazo} key={plazo}>{plazo} meses</option>)}
+              </select>
+            </div>
+            <article><span>Cuota estimada sin interés</span><strong>{formatoUSD(cuotaSimulada)}</strong><small>Valor orientativo. Sujeto a condiciones de financiación.</small></article>
+          </div>
+        </section>}
+
         {cargadores.length > 0 && (
-          <section className="aqv8-section">
+          <section className="aqv8-section" id="equipamiento-propuesta">
             <div className="aqv8-section-title">
               <span>EQUIPAMIENTO DE CARGA</span>
               <h2>Cargadores incluidos</h2>
@@ -3199,17 +3414,30 @@ function VistaComercial({
           </button>
         </section>
 
-        <footer className="aqv8-validity">
-          <b>✓</b>
+        <footer className={propuestaVencida ? "aqv8-validity vencida" : "aqv8-validity"}>
+          <b>{propuestaVencida ? "!" : "✓"}</b>
           <div>
-            <strong>Propuesta válida por {propuesta.vigenciaDias} días</strong>
+            <strong>{propuestaVencida ? "Esta propuesta venció" : "Tiempo restante para aprovechar la propuesta"}</strong>
+            {!propuestaVencida && (
+              <div className="aqv8-countdown">
+                <span><b>{diasRestantes}</b>días</span>
+                <span><b>{horasRestantes}</b>hs</span>
+                <span><b>{minutosRestantes}</b>min</span>
+                <span><b>{segundosRestantes}</b>seg</span>
+              </div>
+            )}
             <span>
-              Emitida el {new Date(propuesta.fecha).toLocaleDateString("es-AR")}{" "}
-              · Los precios pueden variar sin previo aviso
+              Emitida el {new Date(propuesta.fecha).toLocaleString("es-AR")} · Vence el {new Date(fechaVencimiento).toLocaleString("es-AR")}
             </span>
           </div>
         </footer>
       </main>
+
+      <aside className="aqv8-sticky-actions" aria-label="Acciones rápidas">
+        <div><span>Precio final</span><strong>{formatoUSD(precioFinal)}</strong></div>
+        <button onClick={() => abrirWhatsApp(propuesta, "consulta")}>Hablar con mi asesor</button>
+        <button onClick={() => abrirWhatsApp(propuesta, "reserva")}>Reservar unidad</button>
+      </aside>
 
       <button
         className="aqv8-floating-whatsapp"
