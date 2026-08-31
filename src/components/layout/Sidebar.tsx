@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { ReactNode } from "react";
 import "../../styles/sidebar.css";
 
@@ -10,7 +11,7 @@ type SidebarProps = {
   cerrarSesion: () => void;
 };
 
-type IconName = "plus" | "dashboard" | "document" | "users" | "car" | "box" | "credit" | "chart" | "settings" | "logout";
+type IconName = "plus" | "dashboard" | "document" | "users" | "car" | "box" | "credit" | "chart" | "settings" | "logout" | "menu" | "close";
 
 function NavIcon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
@@ -24,29 +25,53 @@ function NavIcon({ name }: { name: IconName }) {
     chart: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l-2.8 2.8a1.7 1.7 0 0 0-1.8-.3A1.7 1.7 0 0 0 14 21h-4a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.8.3l-2.8-2.8a1.7 1.7 0 0 0 .3-1.8A1.7 1.7 0 0 0 3 14v-4a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.8l2.8-2.8a1.7 1.7 0 0 0 1.8.3A1.7 1.7 0 0 0 10 3h4a1.7 1.7 0 0 0 1.1 1.6 1.7 1.7 0 0 0 1.8-.3l2.8 2.8a1.7 1.7 0 0 0-.3 1.8A1.7 1.7 0 0 0 21 10v4a1.7 1.7 0 0 0-1.6 1Z" /></>,
     logout: <><path d="M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-5" /></>,
+    menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
+    close: <><path d="m6 6 12 12M18 6 6 18" /></>,
   };
   return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
 
 export default function Sidebar({ pantalla, propuestas, asesorNombre, abrirNuevaPropuesta, setPantalla, cerrarSesion }: SidebarProps) {
+  const [menuAbierto, setMenuAbierto] = useState(false);
   const iniciales = (asesorNombre || "Asesor").split(" ").slice(0, 2).map((parte) => parte[0]).join("").toUpperCase();
   const clase = (destino: string) => pantalla === destino ? "nx-menu-item active" : "nx-menu-item";
+  const navegar = (destino: Parameters<typeof setPantalla>[0]) => {
+    setPantalla(destino);
+    setMenuAbierto(false);
+  };
+
+  const crearPropuesta = () => {
+    abrirNuevaPropuesta();
+    setMenuAbierto(false);
+  };
 
   return (
-    <aside className="nx-sidebar">
-      <div className="nx-logo"><img src="/brand/nexora-wordmark.svg" alt="NEXORA" /></div>
-      <button className="nx-primary-action" onClick={abrirNuevaPropuesta}><NavIcon name="plus" /><span>Nueva propuesta</span></button>
-      <nav className="nx-menu" aria-label="Navegación principal">
+    <aside className={`nx-sidebar${menuAbierto ? " is-open" : ""}`}>
+      <div className="nx-logo">
+        <img src="/brand/nexora-wordmark.svg" alt="NEXORA" />
+        <button
+          className="nx-menu-toggle"
+          type="button"
+          aria-expanded={menuAbierto}
+          aria-controls="nx-main-menu"
+          aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
+          onClick={() => setMenuAbierto((abierto) => !abierto)}
+        >
+          <NavIcon name={menuAbierto ? "close" : "menu"} />
+        </button>
+      </div>
+      <button className="nx-primary-action" onClick={crearPropuesta}><NavIcon name="plus" /><span>Nueva propuesta</span></button>
+      <nav id="nx-main-menu" className="nx-menu" aria-label="Navegación principal">
         <p className="nx-menu-label">GESTIÓN</p>
-        <button className={clase("inicio")} onClick={() => setPantalla("inicio")}><NavIcon name="dashboard" /><span>Panel general</span></button>
-        <button className={clase("propuestas")} onClick={() => setPantalla("propuestas")}><NavIcon name="document" /><span>Propuestas</span><div className="nx-badge">{propuestas.length}</div></button>
-        <button className={clase("clientes")} onClick={() => setPantalla("clientes")}><NavIcon name="users" /><span>Clientes</span></button>
+        <button className={clase("inicio")} onClick={() => navegar("inicio")}><NavIcon name="dashboard" /><span>Panel general</span></button>
+        <button className={clase("propuestas")} onClick={() => navegar("propuestas")}><NavIcon name="document" /><span>Propuestas</span><div className="nx-badge">{propuestas.length}</div></button>
+        <button className={clase("clientes")} onClick={() => navegar("clientes")}><NavIcon name="users" /><span>Clientes</span></button>
         <p className="nx-menu-label nx-menu-label-space">RECURSOS</p>
-        <button className={clase("catalogo")} onClick={() => setPantalla("catalogo")}><NavIcon name="car" /><span>Vehículos</span></button>
-        <button className="nx-menu-item" onClick={() => setPantalla("catalogo")}><NavIcon name="box" /><span>Accesorios</span></button>
-        <button className={clase("financiacion")} onClick={() => setPantalla("financiacion")}><NavIcon name="credit" /><span>Financiación</span></button>
-        <button className={clase("reportes")} onClick={() => setPantalla("reportes")}><NavIcon name="chart" /><span>Reportes</span></button>
-        <button className={clase("configuracion")} onClick={() => setPantalla("configuracion")}><NavIcon name="settings" /><span>Configuración</span></button>
+        <button className={clase("catalogo")} onClick={() => navegar("catalogo")}><NavIcon name="car" /><span>Vehículos</span></button>
+        <button className="nx-menu-item" onClick={() => navegar("catalogo")}><NavIcon name="box" /><span>Accesorios</span></button>
+        <button className={clase("financiacion")} onClick={() => navegar("financiacion")}><NavIcon name="credit" /><span>Financiación</span></button>
+        <button className={clase("reportes")} onClick={() => navegar("reportes")}><NavIcon name="chart" /><span>Reportes</span></button>
+        <button className={clase("configuracion")} onClick={() => navegar("configuracion")}><NavIcon name="settings" /><span>Configuración</span></button>
       </nav>
       <div className="nx-sidebar-footer">
         <div className="nx-sidebar-brand"><img src="/brand/byd-logo.svg" alt="BYD" /></div>

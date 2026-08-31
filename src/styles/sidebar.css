@@ -35,6 +35,10 @@
   object-fit: contain;
 }
 
+.nx-menu-toggle {
+  display: none;
+}
+
 .nx-logo h1 {
   margin: 0;
   color: #fff;
@@ -209,11 +213,28 @@
 
   .nx-logo {
     min-height: 72px;
-    margin-bottom: 12px;
+    justify-content: space-between;
+    margin-bottom: 0;
+  }
+
+  .nx-menu-toggle {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+  }
+
+  .nx-menu-toggle svg {
+    width: 21px;
+    height: 21px;
   }
 
   .nx-menu {
-    display: grid;
+    display: none;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
     flex: none;
@@ -225,6 +246,18 @@
 
   .nx-sidebar-footer {
     display: none;
+  }
+
+  .nx-sidebar.is-open .nx-menu {
+    display: grid;
+  }
+
+  .nx-sidebar .nx-primary-action {
+    display: none;
+  }
+
+  .nx-sidebar.is-open .nx-primary-action {
+    display: flex;
   }
 }
 
@@ -329,7 +362,7 @@
 
 @media (max-width: 900px) {
   .nx-sidebar { width: 100%; padding: 0 16px 16px; }
-  .nx-primary-action { margin-bottom: 12px; }
+  .nx-primary-action { margin: 12px 0; }
   .nx-menu-label { display: none; }
   .nx-menu { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .nx-primary-action { width: 100%; }
