@@ -116,3 +116,24 @@
   .advisor-table > button { grid-template-columns: 38px minmax(0, 1fr) 18px; }.advisor-status, .advisor-amount { display: none; }
   .advisor-card-heading { align-items: flex-start; flex-direction: column; }.advisor-card-heading > small { margin-top: -6px; }
 }
+
+/* Legibilidad y aprovechamiento del espacio en pantallas de escritorio. */
+.content > .advisor-dashboard { width: min(100%, 1440px); }
+.advisor-header p { font-size: 15px; }
+.advisor-primary { font-size: 13px; }
+.advisor-metrics span { font-size: 13px; }
+.advisor-metrics small { font-size: 11px; }
+.advisor-card-heading span { font-size: 10px; }
+.advisor-card-heading h2 { font-size: 18px; }
+.advisor-card-heading > small { font-size: 11px; }
+.advisor-client strong { font-size: 13px; }
+.advisor-client small { font-size: 10px; }
+.advisor-status { min-width: 78px; font-size: 10px; }
+.advisor-amount { font-size: 12px; }
+.pipeline-list p, .pipeline-list strong { font-size: 12px; }
+.advisor-quick span strong { font-size: 12px; }
+.advisor-quick span small { font-size: 10px; }
+
+@media (max-width: 700px) {
+  .advisor-metrics span { font-size: 12px; }
+}

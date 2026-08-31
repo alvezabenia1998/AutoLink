@@ -83,13 +83,11 @@
 }
 
 .nx-menu-item > span {
-  display: grid;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 auto;
-  place-items: center;
-  color: #b7c5d4;
-  font-size: 17px;
+  min-width: 0;
+  flex: 1 1 auto;
+  color: inherit;
+  line-height: 1.25;
+  white-space: nowrap;
 }
 
 .nx-menu-item:hover {
@@ -270,8 +268,7 @@
   }
 
   .nx-menu-item > span {
-    width: 18px;
-    font-size: 14px;
+    font-size: inherit;
   }
 }
 
