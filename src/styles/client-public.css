@@ -85,6 +85,14 @@
   max-width: none;
 }
 
+/* La vista pública no debe reservar el espacio lateral del panel del asesor. */
+.app.app-cliente > .content {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  padding: 0 !important;
+}
+
 .aqv8-topbar {
   position: sticky !important;
   top: 0;
@@ -97,7 +105,7 @@
 }
 
 .aqv8-content {
-  width: min(100%, 1280px) !important;
+  width: min(100%, 1440px) !important;
   max-width: none !important;
   padding: 0 clamp(16px, 3vw, 34px) 28px !important;
 }
@@ -259,7 +267,7 @@
   position: static !important;
   z-index: 120;
   display: grid;
-  width: min(calc(100% - 32px), 1212px);
+  width: min(calc(100% - 32px), 1372px);
   grid-template-columns: minmax(180px, 1fr) repeat(2, minmax(190px, 280px));
   align-items: center;
   gap: 8px;
