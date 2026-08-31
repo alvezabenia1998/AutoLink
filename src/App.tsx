@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import { supabase } from "./services/supabase";
+import {
+  guardarPerfil,
+  obtenerPerfil,
+  subirLogoPerfil,
+} from "./services/perfilService";
 import "./styles.css";
 import Sidebar from "./components/layout/Sidebar";
 
@@ -10,6 +15,9 @@ type Pantalla =
   | "propuestas"
   | "catalogo"
   | "configuracion"
+  | "clientes"
+  | "financiacion"
+  | "reportes"
   | "vistaCliente";
 
 type FormaCompra = "contado" | "credito";
@@ -192,22 +200,25 @@ const catalogoInicial: ModeloVehiculo[] = [
         id: "dm-white",
         nombre: "Apricity White",
         codigo: "#efefec",
-        imagen:
-          "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/dolphin-white.jpg",
       },
       {
         id: "dm-green",
         nombre: "Sprout Green",
         codigo: "#a8c4aa",
-        imagen:
-          "https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/dolphin-green.jpg",
       },
       {
         id: "dm-black",
         nombre: "Polar Night Black",
         codigo: "#151619",
-        imagen:
-          "https://images.unsplash.com/photo-1504215680853-026ed2a45def?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/dolphin-black.jpg",
+      },
+      {
+        id: "dm-blue",
+        nombre: "Glacier Blue",
+        codigo: "#9fc9d7",
+        imagen: "/vehicles/dolphin-blue.jpg",
       },
     ],
     cargadores: [
@@ -215,17 +226,15 @@ const catalogoInicial: ModeloVehiculo[] = [
         id: "dm-portatil",
         nombre: "Cargador portátil",
         descripcion: "Cargador de emergencia para uso doméstico.",
-        imagen:
-          "https://images.unsplash.com/photo-1597404294360-feeeda04612e?auto=format&fit=crop&w=1200&q=85",
+        imagen: "/chargers/byd-portable.png",
         incluidoPorDefecto: true,
       },
       {
-        id: "dm-cable",
-        nombre: "Cable de carga",
-        descripcion: "Cable para puntos de carga compatibles.",
-        imagen:
-          "https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=1200&q=85",
-        incluidoPorDefecto: true,
+        id: "dm-wallbox",
+        nombre: "Wallbox BYD 7 kW",
+        descripcion: "Cargador domiciliario de pared para una carga cómoda y segura.",
+        imagen: "/chargers/byd-wallbox.png",
+        incluidoPorDefecto: false,
       },
     ],
   },
@@ -241,22 +250,25 @@ const catalogoInicial: ModeloVehiculo[] = [
         id: "yp-white",
         nombre: "Snow White",
         codigo: "#efefec",
-        imagen:
-          "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/yuan-white.jpg",
       },
       {
         id: "yp-grey",
         nombre: "Time Grey",
         codigo: "#868b91",
-        imagen:
-          "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/yuan-grey.jpg",
       },
       {
         id: "yp-black",
         nombre: "Obsidian Black",
         codigo: "#17181b",
-        imagen:
-          "https://images.unsplash.com/photo-1504215680853-026ed2a45def?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/yuan-black.jpg",
+      },
+      {
+        id: "yp-cyan",
+        nombre: "Malachite Dark Cyan",
+        codigo: "#174b4b",
+        imagen: "/vehicles/yuan-cyan.jpg",
       },
     ],
     cargadores: [
@@ -264,16 +276,14 @@ const catalogoInicial: ModeloVehiculo[] = [
         id: "yp-portatil",
         nombre: "Cargador portátil",
         descripcion: "Cargador portátil incluido con la unidad.",
-        imagen:
-          "https://images.unsplash.com/photo-1597404294360-feeeda04612e?auto=format&fit=crop&w=1200&q=85",
+        imagen: "/chargers/byd-portable.png",
         incluidoPorDefecto: true,
       },
       {
         id: "yp-wallbox",
-        nombre: "Wallbox",
-        descripcion: "Cargador de pared para instalación domiciliaria.",
-        imagen:
-          "https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=1200&q=85",
+        nombre: "Wallbox BYD 7 kW",
+        descripcion: "Cargador domiciliario de pared para una carga cómoda y segura.",
+        imagen: "/chargers/byd-wallbox.png",
         incluidoPorDefecto: false,
       },
     ],
@@ -290,22 +300,25 @@ const catalogoInicial: ModeloVehiculo[] = [
         id: "sp-white",
         nombre: "Snow White",
         codigo: "#efefec",
-        imagen:
-          "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/song-white.jpg",
       },
       {
         id: "sp-grey",
         nombre: "Time Grey",
         codigo: "#858a90",
-        imagen:
-          "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/song-grey.jpg",
       },
       {
         id: "sp-black",
         nombre: "Obsidian Black",
         codigo: "#151619",
-        imagen:
-          "https://images.unsplash.com/photo-1504215680853-026ed2a45def?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/song-black.jpg",
+      },
+      {
+        id: "sp-blue",
+        nombre: "Atlantis Blue",
+        codigo: "#263e53",
+        imagen: "/vehicles/song-blue.jpg",
       },
     ],
     cargadores: [
@@ -313,17 +326,15 @@ const catalogoInicial: ModeloVehiculo[] = [
         id: "sp-portatil",
         nombre: "Cargador portátil",
         descripcion: "Cargador portátil para recarga domiciliaria.",
-        imagen:
-          "https://images.unsplash.com/photo-1597404294360-feeeda04612e?auto=format&fit=crop&w=1200&q=85",
+        imagen: "/chargers/byd-portable.png",
         incluidoPorDefecto: true,
       },
       {
-        id: "sp-cable",
-        nombre: "Cable de carga",
-        descripcion: "Cable de conexión para puntos de carga.",
-        imagen:
-          "https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=1200&q=85",
-        incluidoPorDefecto: true,
+        id: "sp-wallbox",
+        nombre: "Wallbox BYD 7 kW",
+        descripcion: "Cargador domiciliario de pared para una carga cómoda y segura.",
+        imagen: "/chargers/byd-wallbox.png",
+        incluidoPorDefecto: false,
       },
     ],
   },
@@ -339,22 +350,25 @@ const catalogoInicial: ModeloVehiculo[] = [
         id: "a2-white",
         nombre: "Skiing White",
         codigo: "#f1f1ef",
-        imagen:
-          "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/atto-white.jpg",
       },
       {
         id: "a2-grey",
         nombre: "Time Grey",
         codigo: "#858a90",
-        imagen:
-          "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/atto-grey.jpg",
       },
       {
         id: "a2-black",
         nombre: "Obsidian Black",
         codigo: "#151619",
-        imagen:
-          "https://images.unsplash.com/photo-1504215680853-026ed2a45def?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/atto-black.jpg",
+      },
+      {
+        id: "a2-cyan",
+        nombre: "Malachite Dark Cyan",
+        codigo: "#174b4b",
+        imagen: "/vehicles/atto-cyan.jpg",
       },
     ],
     cargadores: [
@@ -362,8 +376,14 @@ const catalogoInicial: ModeloVehiculo[] = [
         id: "a2-portatil",
         nombre: "Cargador portátil",
         descripcion: "Cargador portátil incluido.",
-        imagen:
-          "https://images.unsplash.com/photo-1597404294360-feeeda04612e?auto=format&fit=crop&w=1200&q=85",
+        imagen: "/chargers/byd-portable.png",
+        incluidoPorDefecto: true,
+      },
+      {
+        id: "a2-wallbox",
+        nombre: "Wallbox BYD 7 kW",
+        descripcion: "Cargador domiciliario de pared incluido con la unidad.",
+        imagen: "/chargers/byd-wallbox.png",
         incluidoPorDefecto: true,
       },
     ],
@@ -380,29 +400,25 @@ const catalogoInicial: ModeloVehiculo[] = [
         id: "su-white",
         nombre: "Snow White",
         codigo: "#f0f0ed",
-        imagen:
-          "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/seal-white.jpg",
       },
       {
         id: "su-time",
         nombre: "Time Gray",
         codigo: "#85898e",
-        imagen:
-          "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/seal-grey.jpg",
       },
       {
         id: "su-smoke",
         nombre: "Smoke Gray",
         codigo: "#5f6267",
-        imagen:
-          "https://images.unsplash.com/photo-1550355291-bbee04a92027?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/seal-smoke.jpg",
       },
       {
         id: "su-black",
         nombre: "Obsidian Black",
         codigo: "#141518",
-        imagen:
-          "https://images.unsplash.com/photo-1504215680853-026ed2a45def?auto=format&fit=crop&w=1600&q=85",
+        imagen: "/vehicles/seal-black.jpg",
       },
     ],
     cargadores: [
@@ -410,30 +426,119 @@ const catalogoInicial: ModeloVehiculo[] = [
         id: "su-portatil",
         nombre: "Cargador portátil",
         descripcion: "Cargador portátil para la unidad.",
-        imagen:
-          "https://images.unsplash.com/photo-1597404294360-feeeda04612e?auto=format&fit=crop&w=1200&q=85",
+        imagen: "/chargers/byd-portable.png",
         incluidoPorDefecto: true,
       },
       {
         id: "su-wallbox",
-        nombre: "Wallbox",
-        descripcion: "Cargador de pared para instalación domiciliaria.",
-        imagen:
-          "https://images.unsplash.com/photo-1615906655593-ad0386982a0f?auto=format&fit=crop&w=1200&q=85",
+        nombre: "Wallbox BYD 7 kW",
+        descripcion: "Cargador domiciliario de pared para una carga cómoda y segura.",
+        imagen: "/chargers/byd-wallbox.png",
         incluidoPorDefecto: false,
       },
     ],
   },
+  {
+    id: "shark-dmo",
+    nombre: "SHARK DM-O",
+    tipo: "Pick-up híbrida enchufable 4x4",
+    versiones: ["GS"],
+    garantia: "6 años o 150.000 km",
+    descripcion:
+      "Pick-up híbrida enchufable con plataforma DM-O, 437 CV y tracción integral inteligente.",
+    colores: [
+      {
+        id: "sh-grey",
+        nombre: "Atlantis Grey",
+        codigo: "#6f7478",
+        imagen: "/vehicles/shark-grey.jpg",
+      },
+      {
+        id: "sh-white",
+        nombre: "Pallas White",
+        codigo: "#f0f0eb",
+        imagen: "/vehicles/shark-white.jpg",
+      },
+      {
+        id: "sh-black",
+        nombre: "Obsidian Black",
+        codigo: "#17181a",
+        imagen: "/vehicles/shark-black.jpg",
+      },
+      {
+        id: "sh-green",
+        nombre: "Urdu Milky-Gray Green",
+        codigo: "#657068",
+        imagen: "/vehicles/shark-green.jpg",
+      },
+      {
+        id: "sh-orange",
+        nombre: "Floating Sun Orange",
+        codigo: "#bf5a2a",
+        imagen: "/vehicles/shark-orange.jpg",
+      },
+    ],
+    cargadores: [
+      {
+        id: "sh-portatil",
+        nombre: "Cargador portátil BYD",
+        descripcion: "Cargador portátil incluido para recarga de viaje.",
+        imagen: "/chargers/byd-portable.png",
+        incluidoPorDefecto: true,
+      },
+      {
+        id: "sh-wallbox",
+        nombre: "Wallbox BYD 7 kW",
+        descripcion: "Cargador domiciliario de pared incluido con la unidad.",
+        imagen: "/chargers/byd-wallbox.png",
+        incluidoPorDefecto: true,
+      },
+    ],
+  },
 ];
+
+const actualizarImagenesOficiales = (catalogo: ModeloVehiculo[]) => {
+  const actualizados = catalogo.map((modelo) => {
+    const referencia = catalogoInicial.find((item) => item.id === modelo.id);
+    if (!referencia) return modelo;
+
+    return {
+      ...modelo,
+      colores: referencia.colores.map((colorOficial) => {
+        const colorGuardado = modelo.colores.find(
+          (color) => color.id === colorOficial.id
+        );
+        return { ...colorOficial, ...colorGuardado, imagen: colorOficial.imagen };
+      }),
+      cargadores: referencia.cargadores.map((cargadorOficial) => {
+        const cargadorGuardado = modelo.cargadores.find(
+          (cargador) => cargador.id === cargadorOficial.id
+        );
+        return {
+          ...cargadorOficial,
+          ...cargadorGuardado,
+          imagen: cargadorOficial.imagen,
+        };
+      }),
+    };
+  });
+
+  const modelosNuevos = catalogoInicial.filter(
+    (modeloOficial) =>
+      !actualizados.some((modelo) => modelo.id === modeloOficial.id)
+  );
+
+  return [...actualizados, ...modelosNuevos];
+};
 
 const asesorInicial: Asesor = {
   nombre: "Michael Alvez",
   cargo: "Asesor Comercial BYD",
   telefono: "5491100000000",
   email: "michael@nexora.com",
-  foto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=85",
+  foto: "",
   concesionario: "BYD",
-  logo: "",
+  logo: "/brand/byd-logo.svg",
   textoEntrega: "Entrega inmediata",
   garantiaPredeterminada: "6 años o 150.000 km",
   vigenciaPredeterminada: 5,
@@ -463,7 +568,18 @@ const leerArchivoComoDataURL = (archivo: File): Promise<string> =>
   });
 
 export default function App() {
-  const [pantalla, setPantalla] = useState<Pantalla>("inicio");
+  const mostrarFlujoClasico =
+    import.meta.env.DEV &&
+    new URLSearchParams(window.location.search).has("flujo-clasico");
+  const [pantalla, setPantalla] = useState<Pantalla>(() => {
+    if (!import.meta.env.DEV) return "inicio";
+    const vista = new URLSearchParams(window.location.search).get("preview");
+    return ["inicio", "nueva", "propuestas", "catalogo", "configuracion"].includes(
+      vista || ""
+    )
+      ? (vista as Pantalla)
+      : "inicio";
+  });
   const [paso, setPaso] = useState(1);
 
   const [catalogo, setCatalogo] = useState<ModeloVehiculo[]>(catalogoInicial);
@@ -473,25 +589,28 @@ export default function App() {
     null
   );
   const [modeloPropuestaAbierta, setModeloPropuestaAbierta] =
-  useState<ModeloVehiculo | null>(null);
+    useState<ModeloVehiculo | null>(null);
+  const [asesorPropuestaAbierta, setAsesorPropuestaAbierta] =
+    useState<Asesor | null>(null);
+  const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
+    const parametroPublico = new URLSearchParams(
+      window.location.hash.replace(/^#/, "")
+    ).get("propuesta");
 
-const [asesorPropuestaAbierta, setAsesorPropuestaAbierta] =
-  useState<Asesor | null>(null);  useState<Asesor | null>(null);
-const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
-  const parametroPublico = new URLSearchParams(
-    window.location.hash.replace(/^#/, "")
-  ).get("propuesta");
-
-  return Boolean(parametroPublico);
-});  const [estadoNube, setEstadoNube] = useState<EstadoNube>("conectando");
+    return Boolean(parametroPublico);
+  });
+  const [estadoNube, setEstadoNube] =
+    useState<EstadoNube>("conectando");
+  const [perfilCargado, setPerfilCargado] = useState(false);
 
   const [cliente, setCliente] = useState("");
   const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
 
-  const [modeloId, setModeloId] = useState(catalogoInicial[2].id);
-  const [version, setVersion] = useState(catalogoInicial[2].versiones[0]);
-  const [colorId, setColorId] = useState(catalogoInicial[2].colores[0].id);
+  const modeloInicial = catalogoInicial.find((modelo) => modelo.id === "shark-dmo") ?? catalogoInicial[0];
+  const [modeloId, setModeloId] = useState(modeloInicial.id);
+  const [version, setVersion] = useState(modeloInicial.versiones[0]);
+  const [colorId, setColorId] = useState(modeloInicial.colores[0].id);
 
   const [formaCompra, setFormaCompra] = useState<FormaCompra>("contado");
   const [precioLista, setPrecioLista] = useState(42500000);
@@ -512,7 +631,9 @@ const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
     patentamiento: false,
   });
 
-  const [cargadoresIncluidos, setCargadoresIncluidos] = useState<string[]>([]);
+  const [cargadoresIncluidos, setCargadoresIncluidos] = useState<string[]>(
+    modeloInicial.cargadores.filter((cargador) => cargador.incluidoPorDefecto).map((cargador) => cargador.id)
+  );
   const [observaciones, setObservaciones] = useState("");
   const [vigenciaDias, setVigenciaDias] = useState(
     asesorInicial.vigenciaPredeterminada
@@ -533,12 +654,16 @@ const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
       
       if (catalogoGuardado) {
         try {
-          const catalogoParseado = JSON.parse(catalogoGuardado);
+          const catalogoParseado = actualizarImagenesOficiales(
+            JSON.parse(catalogoGuardado)
+          );
           if (Array.isArray(catalogoParseado) && catalogoParseado.length > 0) {
             setCatalogo(catalogoParseado);
-            setModeloId(catalogoParseado[0].id);
-            setVersion(catalogoParseado[0].versiones[0] || "GS");
-            setColorId(catalogoParseado[0].colores[0]?.id || "");
+            const inicial = catalogoParseado.find((modelo) => modelo.id === "shark-dmo") ?? catalogoParseado[0];
+            setModeloId(inicial.id);
+            setVersion(inicial.versiones[0] || "GS");
+            setColorId(inicial.colores[0]?.id || "");
+            setCargadoresIncluidos(inicial.cargadores.filter((cargador) => cargador.incluidoPorDefecto).map((cargador) => cargador.id));
             setModeloEditandoId(catalogoParseado[0].id);
           }
         } catch {}
@@ -554,13 +679,20 @@ const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
     throw errorCatalogo;
   }
 
-  const catalogoNube = catalogoFila?.datos as ModeloVehiculo[] | undefined;
+  const catalogoNubeSinActualizar = catalogoFila?.datos as
+    | ModeloVehiculo[]
+    | undefined;
+  const catalogoNube = catalogoNubeSinActualizar
+    ? actualizarImagenesOficiales(catalogoNubeSinActualizar)
+    : undefined;
 
   if (Array.isArray(catalogoNube) && catalogoNube.length > 0) {
     setCatalogo(catalogoNube);
-    setModeloId(catalogoNube[0].id);
-    setVersion(catalogoNube[0].versiones[0] || "GS");
-    setColorId(catalogoNube[0].colores[0]?.id || "");
+    const inicial = catalogoNube.find((modelo) => modelo.id === "shark-dmo") ?? catalogoNube[0];
+    setModeloId(inicial.id);
+    setVersion(inicial.versiones[0] || "GS");
+    setColorId(inicial.colores[0]?.id || "");
+    setCargadoresIncluidos(inicial.cargadores.filter((cargador) => cargador.incluidoPorDefecto).map((cargador) => cargador.id));
     setModeloEditandoId(catalogoNube[0].id);
 
     localStorage.setItem(
@@ -572,10 +704,25 @@ const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
   console.error("No se pudo cargar el catálogo desde Supabase:", error);
 }
 
+      let asesorLocal = asesorInicial;
       if (asesorGuardado) {
         try {
-          setAsesor(JSON.parse(asesorGuardado));
+          asesorLocal = JSON.parse(asesorGuardado);
+          setAsesor(asesorLocal);
         } catch {}
+      }
+
+      try {
+        const perfilNube = await obtenerPerfil();
+        if (perfilNube) {
+          asesorLocal = { ...asesorInicial, ...perfilNube };
+          setAsesor(asesorLocal);
+          localStorage.setItem(STORAGE_ASESOR, JSON.stringify(asesorLocal));
+        }
+      } catch (error) {
+        console.error("No se pudo cargar el perfil desde Supabase:", error);
+      } finally {
+        setPerfilCargado(true);
       }
 
 try {
@@ -609,7 +756,7 @@ if (propuestaEncontrada) {
   );
 
   setModeloPropuestaAbierta(filaOriginal?.datos?.modelo ?? null);
-  setAsesorPropuestaAbierta(filaOriginal?.datos?.asesor ?? asesor);
+  setAsesorPropuestaAbierta(filaOriginal?.datos?.asesor ?? asesorLocal);
 
   setEsEnlacePublico(true);
   setPantalla("vistaCliente");
@@ -701,7 +848,22 @@ useEffect(() => {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_ASESOR, JSON.stringify(asesor));
-  }, [asesor]);
+
+    if (!perfilCargado || esEnlacePublico) return;
+
+    const temporizador = window.setTimeout(async () => {
+      try {
+        setEstadoNube("conectando");
+        await guardarPerfil(asesor);
+        setEstadoNube("sincronizado");
+      } catch (error) {
+        console.error("No se pudo guardar el perfil en Supabase:", error);
+        setEstadoNube("error");
+      }
+    }, 600);
+
+    return () => window.clearTimeout(temporizador);
+  }, [asesor, esEnlacePublico, perfilCargado]);
 
   const modeloSeleccionado = useMemo(
     () => catalogo.find((modelo) => modelo.id === modeloId) || catalogo[0],
@@ -733,7 +895,8 @@ useEffect(() => {
   };
 
   const limpiarFormulario = () => {
-    const primerModelo = catalogo[0];
+    const primerModelo =
+      catalogo.find((modelo) => modelo.id === "shark-dmo") ?? catalogo[0];
     setPaso(1);
     setCliente("");
     setTelefono("");
@@ -1239,18 +1402,22 @@ const subirImagenColor = async (
     actualizarCargador(cargadorId, { imagen });
   };
 
-  const subirFotoAsesor = async (evento: ChangeEvent<HTMLInputElement>) => {
-    const archivo = evento.target.files?.[0];
-    if (!archivo) return;
-    const foto = await leerArchivoComoDataURL(archivo);
-    setAsesor((actual) => ({ ...actual, foto }));
-  };
-
   const subirLogo = async (evento: ChangeEvent<HTMLInputElement>) => {
     const archivo = evento.target.files?.[0];
     if (!archivo) return;
-    const logo = await leerArchivoComoDataURL(archivo);
-    setAsesor((actual) => ({ ...actual, logo }));
+    try {
+      setEstadoNube("conectando");
+      const logo = await subirLogoPerfil(archivo);
+      setAsesor((actual) => ({ ...actual, logo }));
+    } catch (error) {
+      console.error("No se pudo subir el logo:", error);
+      setEstadoNube("error");
+      window.alert(
+        error instanceof Error ? error.message : "No se pudo subir el logo"
+      );
+    } finally {
+      evento.target.value = "";
+    }
   };
 
   const mostrarMenu = pantalla !== "vistaCliente" && !esEnlacePublico;
@@ -1278,6 +1445,7 @@ const subirImagenColor = async (
   <Sidebar
     pantalla={pantalla}
     propuestas={propuestas}
+    asesorNombre={asesor.nombre}
     abrirNuevaPropuesta={abrirNuevaPropuesta}
     setPantalla={setPantalla}
     cerrarSesion={cerrarSesion}
@@ -1304,6 +1472,40 @@ const subirImagenColor = async (
   />
 )}
 
+{pantalla === "clientes" && (
+  <>
+    <header className="encabezado"><div><p className="eyebrow">Gestión comercial</p><h1>Clientes</h1><p>Contactos creados desde tus propuestas.</p></div><button className="boton-verde" onClick={abrirNuevaPropuesta}>＋ Nueva propuesta</button></header>
+    <section className="panel premium-data-list">
+      {propuestas.length === 0 ? <div className="estado-vacio"><h3>Todavía no hay clientes</h3><p>Los clientes aparecerán al guardar propuestas.</p></div> :
+        Array.from(new Map(propuestas.map((propuesta) => [propuesta.telefono || propuesta.email || propuesta.cliente, propuesta])).values()).map((propuesta) => (
+          <button key={propuesta.id} onClick={() => abrirPropuesta(propuesta)}><div className="avatar">{propuesta.cliente.slice(0, 2).toUpperCase()}</div><div><strong>{propuesta.cliente}</strong><small>{propuesta.telefono} · {propuesta.email || "Sin correo"}</small></div><span>Ver propuesta →</span></button>
+        ))}
+    </section>
+  </>
+)}
+
+{pantalla === "financiacion" && (
+  <>
+    <header className="encabezado"><div><p className="eyebrow">Operaciones</p><h1>Financiación</h1><p>Propuestas configuradas con crédito.</p></div><button className="boton-verde" onClick={abrirNuevaPropuesta}>＋ Nueva propuesta</button></header>
+    <section className="panel premium-data-list">
+      {propuestas.filter((propuesta) => propuesta.formaCompra === "credito").length === 0 ? <div className="estado-vacio"><h3>No hay financiaciones registradas</h3><p>Elegí Crédito al crear una propuesta para verla acá.</p></div> : propuestas.filter((propuesta) => propuesta.formaCompra === "credito").map((propuesta) => (
+        <button key={propuesta.id} onClick={() => abrirPropuesta(propuesta)}><div className="avatar">{propuesta.cliente.slice(0, 2).toUpperCase()}</div><div><strong>{propuesta.cliente}</strong><small>Anticipo {formatoUSD(propuesta.anticipo)} · {propuesta.cuotas} cuotas</small></div><span>{formatoPesos(propuesta.valorCuota)} →</span></button>
+      ))}
+    </section>
+  </>
+)}
+
+{pantalla === "reportes" && (
+  <>
+    <header className="encabezado"><div><p className="eyebrow">Análisis comercial</p><h1>Reportes</h1><p>Resumen general de tu actividad.</p></div></header>
+    <section className="metricas">
+      <article className="metrica"><span>▤</span><p>Propuestas totales</p><h2>{propuestas.length}</h2><small>Registradas en Nexora</small></article>
+      <article className="metrica"><span>◉</span><p>Operaciones financiadas</p><h2>{propuestas.filter((propuesta) => propuesta.formaCompra === "credito").length}</h2><small>Con plan de crédito</small></article>
+      <article className="metrica"><span>✓</span><p>Clientes interesados</p><h2>{propuestas.filter((propuesta) => propuesta.estado === "Interesado").length}</h2><small>Seguimiento comercial</small></article>
+    </section>
+  </>
+)}
+
 {pantalla === "catalogo" && (
   <EditorCatalogo
     catalogo={catalogo}
@@ -1327,13 +1529,144 @@ const subirImagenColor = async (
   <Configuracion
     asesor={asesor}
     setAsesor={setAsesor}
-    subirFotoAsesor={subirFotoAsesor}
     subirLogo={subirLogo}
   />
 )}
-        {pantalla === "nueva" && (
+        {pantalla === "nueva" && modeloSeleccionado && colorSeleccionado && (
           <>
-            <header className="encabezado">
+            <header className="premium-topbar">
+              <button onClick={() => setPantalla("inicio")} aria-label="Volver">←</button>
+              <strong>Nueva propuesta</strong>
+              <div><span>?</span><span>♢</span></div>
+            </header>
+
+            <div className="premium-workspace">
+              <div className="premium-main-column">
+                <section className="premium-vehicle-card">
+                  <div className="premium-vehicle-title">
+                    <div>
+                      <span>BYD</span>
+                      <h1>{modeloSeleccionado.nombre}</h1>
+                    </div>
+                    <select value={modeloId} onChange={(evento) => seleccionarModelo(evento.target.value)} aria-label="Modelo">
+                      {catalogo.map((modelo) => <option value={modelo.id} key={modelo.id}>{modelo.nombre}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="premium-vehicle-layout">
+                    <div className="premium-vehicle-image">
+                      <img src={colorSeleccionado.imagen} alt={`${modeloSeleccionado.nombre} ${colorSeleccionado.nombre}`} onError={(evento) => { evento.currentTarget.src = FOTO_AUTO_ALTERNATIVA; }} />
+                    </div>
+                    <div className="premium-vehicle-options">
+                      <label>Versión</label>
+                      <select value={version} onChange={(evento) => setVersion(evento.target.value)}>
+                        {modeloSeleccionado.versiones.map((item) => <option key={item}>{item}</option>)}
+                      </select>
+                      <label>Color</label>
+                      <div className="premium-colors">
+                        {modeloSeleccionado.colores.map((color) => (
+                          <button type="button" key={color.id} className={color.id === colorId ? "selected" : ""} style={{ backgroundColor: color.codigo }} title={color.nombre} onClick={() => setColorId(color.id)} />
+                        ))}
+                      </div>
+                      <div className="premium-specs">
+                        <p><span>⌁</span>{modeloSeleccionado.tipo}</p>
+                        <p><span>◇</span>{modeloSeleccionado.versiones.length} {modeloSeleccionado.versiones.length === 1 ? "versión disponible" : "versiones disponibles"}</p>
+                        <p><span>◷</span>{modeloSeleccionado.descripcion}</p>
+                        <p><span>▣</span>Garantía {modeloSeleccionado.garantia}</p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="premium-chargers-card">
+                  <div className="premium-section-heading">
+                    <div><h2>Carga y accesorios</h2><p>Equipamiento disponible para la versión seleccionada.</p></div>
+                  </div>
+                  <div className="premium-chargers-grid">
+                    {modeloSeleccionado.cargadores.map((cargador) => {
+                      const activo = cargadoresIncluidos.includes(cargador.id);
+                      return (
+                        <button type="button" className={activo ? "premium-charger active" : "premium-charger"} key={cargador.id} onClick={() => setCargadoresIncluidos((actuales) => activo ? actuales.filter((id) => id !== cargador.id) : [...actuales, cargador.id])}>
+                          <div className="premium-charger-top"><strong>{cargador.nombre}</strong><span>{activo ? "Incluido" : "Agregar"}</span></div>
+                          <div className="premium-charger-body">
+                            <img src={cargador.imagen} alt={cargador.nombre} onError={(evento) => { evento.currentTarget.src = FOTO_CARGADOR_ALTERNATIVA; }} />
+                            <div><p>◉ Producto original BYD</p><p>⊙ Conector compatible</p><p>▢ Garantía oficial</p></div>
+                          </div>
+                          <div className="premium-charger-bottom"><span>{activo ? "Incluido" : "Opcional"}</span><strong>USD 0</strong></div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="premium-note">ⓘ Los accesorios incluidos pueden variar según la versión seleccionada.</p>
+                </section>
+
+                <section className="premium-details-card">
+                  <div className="premium-section-heading"><div><h2>Cliente y condiciones comerciales</h2><p>Información necesaria para generar la propuesta.</p></div></div>
+                  <div className="premium-details-grid">
+                    <Campo etiqueta="Nombre y apellido" valor={cliente} cambiar={setCliente} placeholder="Ejemplo: Juan Pérez" />
+                    <Campo etiqueta="Teléfono" valor={telefono} cambiar={setTelefono} placeholder="11 1234 5678" tipo="tel" />
+                    <Campo etiqueta="Correo electrónico" valor={email} cambiar={setEmail} placeholder="cliente@email.com" tipo="email" />
+                    <CampoNumero etiqueta="Precio de lista" valor={precioLista} cambiar={setPrecioLista} />
+                    <CampoNumero etiqueta="Bonificación" valor={bonificacion} cambiar={setBonificacion} />
+                  </div>
+
+                  <div className="premium-commercial-section">
+                    <h3>Forma de compra</h3>
+                    <div className="premium-choice-row">
+                      <button type="button" className={formaCompra === "contado" ? "active" : ""} onClick={() => setFormaCompra("contado")}><strong>Contado</strong><small>Pago total de la unidad</small></button>
+                      <button type="button" className={formaCompra === "credito" ? "active" : ""} onClick={() => setFormaCompra("credito")}><strong>Crédito</strong><small>Anticipo y financiación</small></button>
+                    </div>
+                    {formaCompra === "credito" && (
+                      <div className="premium-details-grid premium-subgrid">
+                        <CampoNumero etiqueta="Anticipo" valor={anticipo} cambiar={setAnticipo} />
+                        <CampoNumero etiqueta="Cantidad de cuotas" valor={cuotas} cambiar={setCuotas} />
+                        <CampoNumero etiqueta="Valor de cuota" valor={valorCuota} cambiar={setValorCuota} />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="premium-commercial-section">
+                    <h3>Gastos de la operación</h3>
+                    <div className="premium-choice-row premium-expenses">
+                      <button type="button" className={tipoGasto === "sin-gastos" ? "active" : ""} onClick={() => { setTipoGasto("sin-gastos"); setMontoGastos(0); }}><strong>Sin gastos</strong><small>No se suman gastos</small></button>
+                      <button type="button" className={tipoGasto === "flete-formulario" ? "active" : ""} onClick={() => setTipoGasto("flete-formulario")}><strong>Flete y formulario</strong><small>Cargar importe en pesos</small></button>
+                      <button type="button" className={tipoGasto === "patentamiento-completo" ? "active" : ""} onClick={() => setTipoGasto("patentamiento-completo")}><strong>Patentamiento</strong><small>Puesta en calle completa</small></button>
+                    </div>
+                    {tipoGasto !== "sin-gastos" && (
+                      <div className="premium-expense-input"><CampoNumero etiqueta={tipoGasto === "flete-formulario" ? "Monto de flete y formulario" : "Monto de patentamiento completo"} valor={montoGastos} cambiar={setMontoGastos} /></div>
+                    )}
+                  </div>
+
+                  <div className="premium-commercial-section">
+                    <h3>Accesorios</h3>
+                    <div className="premium-accessories">
+                      <Interruptor etiqueta="Polarizado" activo={accesorios.polarizado} cambiar={(activo) => setAccesorios((actual) => ({ ...actual, polarizado: activo }))} />
+                      <Interruptor etiqueta="Tuercas de seguridad" activo={accesorios.tuercas} cambiar={(activo) => setAccesorios((actual) => ({ ...actual, tuercas: activo }))} />
+                      <Interruptor etiqueta="Alfombras" activo={accesorios.alfombras} cambiar={(activo) => setAccesorios((actual) => ({ ...actual, alfombras: activo }))} />
+                      <Interruptor etiqueta="Patentamiento incluido" activo={accesorios.patentamiento} cambiar={(activo) => setAccesorios((actual) => ({ ...actual, patentamiento: activo }))} />
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <aside className="premium-summary">
+                <h2>Resumen</h2>
+                <div><span>Vehículo (Versión {version})</span><strong>{formatoUSD(precioLista)}</strong></div>
+                <div><span>Color</span><strong>USD 0</strong></div>
+                <div><span>Accesorios</span><strong>USD 0</strong></div>
+                <hr />
+                <div><span>Bonificación</span><strong>- {formatoUSD(bonificacion)}</strong></div>
+                <div><span>Gastos</span><strong>{formatoPesos(montoGastos)}</strong></div>
+                <hr />
+                <div className="premium-total"><span>Total</span><strong>{formatoUSD(precioFinal)}</strong></div>
+                <button className="premium-generate" onClick={guardarYVer}>▤ Generar propuesta</button>
+              </aside>
+            </div>
+          </>
+        )}
+        {mostrarFlujoClasico && pantalla === "nueva" && (
+          <>
+            <header className="encabezado encabezado-nueva">
               <div>
                 <p className="eyebrow">Nueva cotización</p>
                 <h1>Nueva propuesta</h1>
@@ -1343,8 +1676,10 @@ const subirImagenColor = async (
               <button
                 className="boton-secundario"
                 onClick={() => setPantalla("inicio")}
+                aria-label="Volver al inicio"
+                title="Volver al inicio"
               >
-                ← Salir
+                ←
               </button>
             </header>
 
@@ -1692,7 +2027,19 @@ const subirImagenColor = async (
                     </div>
                   )}
 
-                  <h3 className="subtitulo-formulario">Cargadores incluidos</h3>
+                  <div className="encabezado-carga">
+                    <div>
+                      <span className="eyebrow">Equipamiento de carga</span>
+                      <h3>Carga y accesorios</h3>
+                      <p>
+                        Ambos cargadores están disponibles para todas las versiones.
+                        Seleccioná cuáles se incluyen en esta propuesta.
+                      </p>
+                    </div>
+                    <span className="contador-carga">
+                      {cargadoresIncluidos.length} de {modeloSeleccionado.cargadores.length}
+                    </span>
+                  </div>
 
                   {modeloSeleccionado.cargadores.length === 0 ? (
                     <p className="texto-ayuda">
@@ -1735,7 +2082,9 @@ const subirImagenColor = async (
                               <strong>{cargador.nombre}</strong>
                               <small>{cargador.descripcion}</small>
                             </div>
-                            <span>{activo ? "✓ Incluido" : "Agregar"}</span>
+                            <span className="estado-cargador">
+                              {activo ? "✓ Incluido" : "+ Agregar"}
+                            </span>
                           </button>
                         );
                       })}
@@ -2372,12 +2721,10 @@ function EditorCatalogo({
 function Configuracion({
   asesor,
   setAsesor,
-  subirFotoAsesor,
   subirLogo,
 }: {
   asesor: Asesor;
   setAsesor: React.Dispatch<React.SetStateAction<Asesor>>;
-  subirFotoAsesor: (evento: ChangeEvent<HTMLInputElement>) => void;
   subirLogo: (evento: ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
@@ -2465,14 +2812,6 @@ function Configuracion({
 
         <div className="subidas-configuracion">
           <div>
-            <h3>Foto del asesor</h3>
-            <label className="boton-subir">
-              Cambiar foto
-              <input type="file" accept="image/*" onChange={subirFotoAsesor} />
-            </label>
-          </div>
-
-          <div>
             <h3>Logo del concesionario</h3>
             <div className="logo-configuracion">
               {asesor.logo ? (
@@ -2489,7 +2828,7 @@ function Configuracion({
         </div>
 
         <div className="mensaje-guardado">
-          ✓ Configuración guardada en este navegador
+          ✓ Configuración sincronizada con tu cuenta
         </div>
       </section>
     </>
@@ -2523,9 +2862,11 @@ function VistaComercial({
   esEnlacePublico: boolean;
 }) {
 
-const modelo =
-  modeloGuardado ||
-  catalogo.find((item) => item.id === propuesta.modeloId);
+  const [colorActivoId, setColorActivoId] = useState(propuesta.colorId);
+  const [cambiandoImagen, setCambiandoImagen] = useState(false);
+  const modelo =
+    modeloGuardado ||
+    catalogo.find((item) => item.id === propuesta.modeloId);
 
   if (!modelo) {
     return (
@@ -2535,8 +2876,6 @@ const modelo =
       </div>
     );
   }
-  const [colorActivoId, setColorActivoId] = useState(propuesta.colorId);
-  const [cambiandoImagen, setCambiandoImagen] = useState(false);
   const color =
   modelo.colores.find((item) => item.id === colorActivoId) ||
   modelo.colores[0];

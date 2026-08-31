@@ -7,7 +7,7 @@ import App from "./App";
 import Login from "./components/Login";
 import { supabase } from "./services/supabase";
 
-function Root() {
+export function Root() {
   const [session, setSession] = useState<Session | null>(null);
   const [cargando, setCargando] = useState(true);
 
@@ -38,8 +38,11 @@ const parametroPublico = new URLSearchParams(
 ).get("propuesta");
 
 const esEnlacePublico = Boolean(parametroPublico);
+const esVistaPreviaLocal =
+  import.meta.env.DEV &&
+  new URLSearchParams(window.location.search).has("preview");
 
-return session || esEnlacePublico ? <App /> : <Login />;}
+return session || esEnlacePublico || esVistaPreviaLocal ? <App /> : <Login />;}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

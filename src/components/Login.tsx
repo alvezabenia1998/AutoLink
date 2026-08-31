@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { supabase } from "../services/supabase";
+import "../styles/login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -7,107 +8,66 @@ export default function Login() {
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
 
-  const iniciarSesion = async () => {
+  const iniciarSesion = async (evento: FormEvent) => {
+    evento.preventDefault();
     setMensaje("");
     setCargando(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setMensaje("Correo o contraseña incorrectos.");
-    } else {
-  window.location.reload();
-}
+      setMensaje("El correo o la contraseña no son correctos.");
+      setCargando(false);
+      return;
+    }
 
-    setCargando(false);
+    window.location.reload();
   };
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#f4f6fb",
-      }}
-    >
-      <div
-        style={{
-          width: 380,
-          background: "#fff",
-          borderRadius: 16,
-          padding: 40,
-          boxShadow: "0 10px 30px rgba(0,0,0,.08)",
-        }}
-      >
-        <h1 style={{ marginBottom: 10, color: "#1a1a1a" }}>Nexora</h1>
+    <main className="login-page">
+      <section className="login-brand-panel">
+        <img className="login-wordmark" src="/brand/nexora-wordmark.svg" alt="NEXORA" />
+        <div className="login-brand-copy">
+          <span>CRM COMERCIAL</span>
+          <h1>Propuestas profesionales para una nueva movilidad.</h1>
+          <p>Gestioná vehículos, clientes y operaciones BYD desde un único lugar.</p>
+        </div>
+        <div className="login-brand-footer">
+          <img src="/brand/byd-logo.svg" alt="BYD" />
+          <span>BYD ARGENDREAMS</span>
+        </div>
+      </section>
 
-        <p style={{ color: "#666", marginBottom: 30 }}>
-          Ingresá para administrar tus propuestas.
-        </p>
+      <section className="login-form-panel">
+        <form className="login-card" onSubmit={iniciarSesion}>
+          <div className="login-mobile-logo"><img src="/brand/nexora-wordmark.svg" alt="NEXORA" /></div>
+          <span className="login-eyebrow">ACCESO SEGURO</span>
+          <h2>Bienvenido a Nexora</h2>
+          <p className="login-subtitle">Ingresá con tu cuenta para continuar al panel comercial.</p>
 
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{
-            width: "100%",
-            padding: 14,
-            marginBottom: 15,
-            borderRadius: 10,
-            border: "1px solid #ddd",
-            boxSizing: "border-box",
-          }}
-        />
+          <label htmlFor="login-email">Correo electrónico</label>
+          <div className="login-input-wrap">
+            <span aria-hidden="true">@</span>
+            <input id="login-email" type="email" autoComplete="email" placeholder="nombre@empresa.com" value={email} onChange={(evento) => setEmail(evento.target.value)} required />
+          </div>
 
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{
-            width: "100%",
-            padding: 14,
-            marginBottom: 20,
-            borderRadius: 10,
-            border: "1px solid #ddd",
-            boxSizing: "border-box",
-          }}
-        />
+          <label htmlFor="login-password">Contraseña</label>
+          <div className="login-input-wrap">
+            <span aria-hidden="true">•</span>
+            <input id="login-password" type="password" autoComplete="current-password" placeholder="Ingresá tu contraseña" value={password} onChange={(evento) => setPassword(evento.target.value)} required />
+          </div>
 
-        <button
-          onClick={iniciarSesion}
-          disabled={cargando}
-          style={{
-            width: "100%",
-            padding: 14,
-            border: "none",
-            borderRadius: 10,
-            background: "#16a34a",
-            color: "#fff",
-            fontSize: 16,
-            cursor: "pointer",
-          }}
-        >
-          {cargando ? "Ingresando..." : "Ingresar"}
-        </button>
+          {mensaje && <p className="login-error" role="alert">{mensaje}</p>}
 
-        {mensaje && (
-          <p
-            style={{
-              marginTop: 16,
-              color: mensaje.includes("correcto") ? "#16a34a" : "#dc2626",
-            }}
-          >
-            {mensaje}
-          </p>
-        )}
-      </div>
-    </div>
+          <button className="login-submit" type="submit" disabled={cargando}>
+            {cargando ? "Ingresando…" : "Ingresar al panel"}
+            {!cargando && <span aria-hidden="true">→</span>}
+          </button>
+
+          <p className="login-help">Acceso exclusivo para el equipo comercial autorizado.</p>
+        </form>
+      </section>
+    </main>
   );
 }
