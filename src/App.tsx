@@ -109,6 +109,7 @@ const STORAGE_ASESOR = "autoquote-asesor-v3";
 
 
 type EstadoNube = "conectando" | "sincronizado" | "offline" | "error";
+type EstadoEnlacePublico = "cargando" | "listo" | "no-encontrada";
 
 const obtenerIdPropuestaPublica = () => {
   const coincidencia = window.location.pathname.match(/^\/propuesta\/([^/]+)\/?$/);
@@ -687,6 +688,10 @@ export default function App() {
   const [esEnlacePublico, setEsEnlacePublico] = useState(() => {
     return Boolean(obtenerIdPropuestaPublica());
   });
+  const [estadoEnlacePublico, setEstadoEnlacePublico] =
+    useState<EstadoEnlacePublico>(() =>
+      obtenerIdPropuestaPublica() ? "cargando" : "listo"
+    );
   const [estadoNube, setEstadoNube] =
     useState<EstadoNube>("conectando");
   const [perfilCargado, setPerfilCargado] = useState(false);
@@ -845,8 +850,11 @@ if (propuestaEncontrada) {
   setAsesorPropuestaAbierta(filaOriginal?.datos?.asesor ?? asesorLocal);
 
   setEsEnlacePublico(true);
+  setEstadoEnlacePublico("listo");
   setPantalla("vistaCliente");
-} 
+} else {
+  setEstadoEnlacePublico("no-encontrada");
+}
  }
 
   localStorage.setItem(
@@ -879,9 +887,21 @@ if (propuestaEncontrada) {
         if (propuestaEncontrada) {
           setPropuestaAbierta(propuestaEncontrada);
           setEsEnlacePublico(true);
+          setEstadoEnlacePublico("listo");
+          setPantalla("vistaCliente");
+        } else {
+          setEstadoEnlacePublico("no-encontrada");
         }
       }
-    } catch {}
+    } catch {
+      if (parametroPublico) {
+        setEstadoEnlacePublico("no-encontrada");
+      }
+    }
+  }
+
+  if (parametroPublico && !propuestasGuardadas) {
+    setEstadoEnlacePublico("no-encontrada");
   }
 
   setEstadoNube(navigator.onLine ? "error" : "offline");
@@ -1515,6 +1535,32 @@ const subirImagenColor = async (
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
   };
+
+  if (esEnlacePublico && estadoEnlacePublico !== "listo") {
+    return (
+      <main className="public-link-state">
+        <div className="public-link-state-card">
+          <img src="/brand/byd-logo.svg" alt="BYD" />
+          {estadoEnlacePublico === "cargando" ? (
+            <>
+              <span className="public-link-loader" aria-hidden="true" />
+              <h1>Estamos preparando tu propuesta</h1>
+              <p>Un momento, estamos cargando todos los detalles.</p>
+            </>
+          ) : (
+            <>
+              <b>!</b>
+              <h1>Este enlace no está disponible</h1>
+              <p>
+                La propuesta pudo haber vencido o el enlace está incompleto.
+                Pedile a tu asesor que te comparta uno nuevo.
+              </p>
+            </>
+          )}
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className={mostrarMenu ? "app" : "app app-cliente"}>
