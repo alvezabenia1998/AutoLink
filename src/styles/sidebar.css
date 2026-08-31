@@ -14,6 +14,12 @@
   box-shadow: 12px 0 34px rgba(5, 18, 36, 0.12);
 }
 
+.app > .content {
+  width: calc(100% - 258px);
+  margin-left: 258px;
+  padding-top: 30px;
+}
+
 .nx-logo {
   display: flex;
   min-height: 88px;
@@ -234,4 +240,103 @@
     width: 18px;
     font-size: 14px;
   }
+}
+
+/* Sidebar CRM premium */
+.nx-sidebar {
+  width: 258px;
+  padding: 0 16px 18px;
+  background: linear-gradient(180deg, #07182b 0%, #061425 55%, #05111f 100%);
+}
+
+.nx-logo {
+  min-height: 82px;
+  margin-bottom: 14px;
+  padding-inline: 16px;
+}
+
+.nx-logo > img {
+  width: 160px;
+}
+
+.nx-primary-action {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: 0 0 22px;
+  border: 1px solid #34cf7c;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #22b866, #189553);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(28, 170, 95, .2);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nx-primary-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nx-menu {
+  gap: 3px;
+}
+
+.nx-menu-label {
+  margin: 0 12px 7px;
+  color: #587089;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .16em;
+}
+
+.nx-menu-label-space {
+  margin-top: 16px;
+}
+
+.nx-menu-item {
+  min-height: 44px;
+  gap: 11px;
+  border-radius: 9px;
+  color: #9eafc1;
+  font-size: 12px;
+}
+
+.nx-menu-item > svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  color: #8296aa;
+}
+
+.nx-menu-item.active {
+  background: linear-gradient(90deg, rgba(45, 212, 123, .15), rgba(31, 77, 113, .25));
+  box-shadow: inset 2px 0 0 #31d27c;
+}
+
+.nx-menu-item.active > svg {
+  color: #5ce39b;
+}
+
+.nx-user-logout svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 900px) {
+  .nx-sidebar { width: 100%; padding: 0 16px 16px; }
+  .nx-primary-action { margin-bottom: 12px; }
+  .nx-menu-label { display: none; }
+  .nx-menu { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nx-primary-action { width: 100%; }
+  .app > .content { width: 100%; margin-left: 0; }
+}
+
+@media (max-width: 600px) {
+  .nx-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nx-menu-item { justify-content: flex-start; }
 }

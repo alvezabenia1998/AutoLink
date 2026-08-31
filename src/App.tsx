@@ -8,6 +8,7 @@ import {
 } from "./services/perfilService";
 import "./styles.css";
 import "./styles/client-public.css";
+import "./styles/advisor-dashboard.css";
 import Sidebar from "./components/layout/Sidebar";
 
 type Pantalla =
@@ -1594,6 +1595,7 @@ const subirImagenColor = async (
     catalogo={catalogo}
     abrirNuevaPropuesta={abrirNuevaPropuesta}
     abrirPropuesta={abrirPropuesta}
+    abrirClientes={() => setPantalla("clientes")}
     asesor={asesor}
   />
 )}
@@ -2382,108 +2384,112 @@ function Inicio({
   catalogo,
   abrirNuevaPropuesta,
   abrirPropuesta,
+  abrirClientes,
   asesor,
 }: {
   propuestas: Propuesta[];
   catalogo: ModeloVehiculo[];
   abrirNuevaPropuesta: () => void;
   abrirPropuesta: (propuesta: Propuesta) => void;
+  abrirClientes: () => void;
   asesor: Asesor;
 }) {
   const enviadas = propuestas.filter((p) => p.estado === "Enviada").length;
   const interesados = propuestas.filter(
     (p) => p.estado === "Interesado"
   ).length;
+  const guardadas = propuestas.filter((p) => p.estado === "Guardada").length;
+  const conversion = propuestas.length
+    ? Math.round((interesados / propuestas.length) * 100)
+    : 0;
+  const valorCartera = propuestas.reduce(
+    (total, propuesta) =>
+      total + Math.max(propuesta.precioLista - propuesta.bonificacion, 0),
+    0
+  );
+  const proximasAVencer = propuestas.filter((propuesta) => {
+    const vence =
+      new Date(propuesta.fecha).getTime() +
+      propuesta.vigenciaDias * 24 * 60 * 60 * 1000;
+    const restante = vence - Date.now();
+    return restante > 0 && restante <= 48 * 60 * 60 * 1000;
+  }).length;
+  const fechaActual = new Intl.DateTimeFormat("es-AR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date());
 
   return (
-    <>
-      <header className="encabezado">
+    <div className="advisor-dashboard">
+      <header className="advisor-header">
         <div>
-          <p className="eyebrow">Panel principal</p>
-          <h1>
-  Hola {(asesor.nombre || "Asesor").split(" ")[0]} 👋
-</h1>
-          <p>Creá propuestas profesionales y gestioná tus clientes.</p>
+          <span className="advisor-date">{fechaActual}</span>
+          <h1>Buen día, {(asesor.nombre || "Asesor").split(" ")[0]}</h1>
+          <p>Este es el estado de tu gestión comercial.</p>
         </div>
-        <button className="boton-verde" onClick={abrirNuevaPropuesta}>
-          ＋ Nueva propuesta
+        <button className="advisor-primary" onClick={abrirNuevaPropuesta}>
+          <DashboardIcon name="plus" /> Nueva propuesta
         </button>
       </header>
 
-      <section className="metricas">
-        <article className="metrica">
-          <span>▤</span>
-          <p>Propuestas guardadas</p>
-          <h2>{propuestas.length}</h2>
-          <small>En este navegador</small>
-        </article>
-        <article className="metrica">
-          <span>➤</span>
-          <p>Propuestas enviadas</p>
-          <h2>{enviadas}</h2>
-          <small>Con resumen compartido</small>
-        </article>
-        <article className="metrica">
-          <span>✓</span>
-          <p>Clientes interesados</p>
-          <h2>{interesados}</h2>
-          <small>Acciones por WhatsApp</small>
-        </article>
+      <section className="advisor-metrics" aria-label="Indicadores comerciales">
+        <article><div className="advisor-metric-icon navy"><DashboardIcon name="file" /></div><div><span>Propuestas totales</span><strong>{propuestas.length}</strong><small>{guardadas} en preparación</small></div></article>
+        <article><div className="advisor-metric-icon blue"><DashboardIcon name="send" /></div><div><span>Enviadas</span><strong>{enviadas}</strong><small>Compartidas con clientes</small></div></article>
+        <article><div className="advisor-metric-icon green"><DashboardIcon name="trend" /></div><div><span>Conversión</span><strong>{conversion}%</strong><small>{interesados} clientes interesados</small></div></article>
+        <article><div className="advisor-metric-icon amber"><DashboardIcon name="clock" /></div><div><span>Próximas a vencer</span><strong>{proximasAVencer}</strong><small>Dentro de las próximas 48 h</small></div></article>
       </section>
 
-      <section className="panel">
-        <div className="panel-titulo">
-          <h2>Actividad reciente</h2>
-          <p>Últimas propuestas creadas.</p>
+      <section className="advisor-grid">
+        <div className="advisor-card advisor-activity">
+          <div className="advisor-card-heading"><div><span>ACTIVIDAD</span><h2>Propuestas recientes</h2></div><small>{formatoUSD(valorCartera)} en cartera</small></div>
+          {propuestas.length === 0 ? (
+            <div className="advisor-empty"><DashboardIcon name="file" /><h3>Tu actividad comenzará acá</h3><p>Creá la primera propuesta para iniciar el seguimiento.</p><button onClick={abrirNuevaPropuesta}>Crear propuesta</button></div>
+          ) : (
+            <div className="advisor-table">
+              {propuestas.slice(0, 5).map((propuesta) => {
+                const modelo = catalogo.find((item) => item.id === propuesta.modeloId);
+                const iniciales = propuesta.cliente.split(" ").slice(0, 2).map((parte) => parte[0]).join("").toUpperCase();
+                return <button key={propuesta.id} onClick={() => abrirPropuesta(propuesta)}>
+                  <span className="advisor-avatar">{iniciales}</span>
+                  <span className="advisor-client"><strong>{propuesta.cliente}</strong><small>BYD {modelo?.nombre || "Vehículo"} · {new Date(propuesta.fecha).toLocaleDateString("es-AR")}</small></span>
+                  <span className={`advisor-status status-${propuesta.estado.toLowerCase()}`}>{propuesta.estado}</span>
+                  <span className="advisor-amount">{formatoUSD(Math.max(propuesta.precioLista - propuesta.bonificacion, 0))}</span>
+                  <DashboardIcon name="arrow" />
+                </button>;
+              })}
+            </div>
+          )}
         </div>
 
-        {propuestas.length === 0 ? (
-          <div className="estado-vacio">
-            <span>🚘</span>
-            <h3>Todavía no creaste propuestas</h3>
-            <p>La primera quedará guardada automáticamente.</p>
-            <button className="boton-verde" onClick={abrirNuevaPropuesta}>
-              Crear primera propuesta
-            </button>
-          </div>
-        ) : (
-          propuestas.slice(0, 4).map((propuesta) => {
-            const modelo = catalogo.find(
-              (item) => item.id === propuesta.modeloId
-            );
-
-            return (
-              <div className="fila-reciente" key={propuesta.id}>
-                <div className="avatar">
-                  {propuesta.cliente
-                    .split(" ")
-                    .slice(0, 2)
-                    .map((parte) => parte[0])
-                    .join("")
-                    .toUpperCase()}
-                </div>
-                <div>
-                  <strong>{propuesta.cliente}</strong>
-                  <p>BYD {modelo?.nombre}</p>
-                </div>
-                <span
-                  className={`estado estado-${propuesta.estado.toLowerCase()}`}
-                >
-                  {propuesta.estado}
-                </span>
-                <button
-                  className="boton-ver"
-                  onClick={() => abrirPropuesta(propuesta)}
-                >
-                  Ver
-                </button>
-              </div>
-            );
-          })
-        )}
+        <aside className="advisor-side">
+          <section className="advisor-card advisor-pipeline">
+            <div className="advisor-card-heading"><div><span>EMBUDO COMERCIAL</span><h2>Estado de oportunidades</h2></div></div>
+            <div className="pipeline-bar"><i style={{ width: `${propuestas.length ? (guardadas / propuestas.length) * 100 : 33}%` }} /><i style={{ width: `${propuestas.length ? (enviadas / propuestas.length) * 100 : 33}%` }} /><i style={{ width: `${propuestas.length ? (interesados / propuestas.length) * 100 : 34}%` }} /></div>
+            <div className="pipeline-list"><p><i className="draft" /><span>En preparación</span><strong>{guardadas}</strong></p><p><i className="sent" /><span>Enviadas</span><strong>{enviadas}</strong></p><p><i className="interested" /><span>Interesados</span><strong>{interesados}</strong></p></div>
+          </section>
+          <section className="advisor-card advisor-quick">
+            <div className="advisor-card-heading"><div><span>ACCESO RÁPIDO</span><h2>Acciones frecuentes</h2></div></div>
+            <button onClick={abrirNuevaPropuesta}><DashboardIcon name="plus" /><span><strong>Nueva propuesta</strong><small>Configurá una unidad</small></span><DashboardIcon name="arrow" /></button>
+            <button onClick={abrirClientes}><DashboardIcon name="users" /><span><strong>Ver clientes</strong><small>Revisá tus contactos</small></span><DashboardIcon name="arrow" /></button>
+          </section>
+        </aside>
       </section>
-    </>
+    </div>
   );
+}
+
+function DashboardIcon({ name }: { name: "plus" | "file" | "send" | "trend" | "clock" | "arrow" | "users" }) {
+  const paths = {
+    plus: <path d="M12 5v14M5 12h14" />,
+    file: <><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></>,
+    send: <><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></>,
+    trend: <><path d="m3 17 6-6 4 4 8-8" /><path d="M15 7h6v6" /></>,
+    clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+    arrow: <><path d="m9 18 6-6-6-6" /></>,
+    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /></>,
+  };
+  return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
 
 function ListaPropuestas({
