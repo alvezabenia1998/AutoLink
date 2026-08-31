@@ -30,7 +30,6 @@ type ColorVehiculo = {
   nombre: string;
   codigo: string;
   imagen: string;
-  imagenes?: string[];
 };
 
 type Cargador = {
@@ -235,11 +234,6 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Sprout Green",
         codigo: "#a8c4aa",
         imagen: "/vehicles/dolphin-green.jpg",
-        imagenes: [
-          "/vehicles/dolphin-gallery-1.jpg",
-          "/vehicles/dolphin-gallery-2.jpg",
-          "/vehicles/dolphin-gallery-3.jpg",
-        ],
       },
       {
         id: "dm-black",
@@ -314,7 +308,6 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Malachite Dark Cyan",
         codigo: "#174b4b",
         imagen: "/vehicles/yuan-cyan.jpg",
-        imagenes: ["/vehicles/yuan-gallery-1.jpg"],
       },
     ],
     cargadores: [
@@ -377,11 +370,6 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Atlantis Blue",
         codigo: "#263e53",
         imagen: "/vehicles/song-blue.jpg",
-        imagenes: [
-          "/vehicles/song-gallery-1.jpg",
-          "/vehicles/song-gallery-2.jpg",
-          "/vehicles/song-gallery-3.jpg",
-        ],
       },
     ],
     cargadores: [
@@ -444,11 +432,6 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Malachite Dark Cyan",
         codigo: "#174b4b",
         imagen: "/vehicles/atto-cyan.jpg",
-        imagenes: [
-          "/vehicles/atto-gallery-1.jpg",
-          "/vehicles/atto-gallery-2.jpg",
-          "/vehicles/atto-gallery-3.jpg",
-        ],
       },
     ],
     cargadores: [
@@ -493,7 +476,6 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Snow White",
         codigo: "#f0f0ed",
         imagen: "/vehicles/seal-white.jpg",
-        imagenes: ["/vehicles/seal-gallery-1.png"],
       },
       {
         id: "su-time",
@@ -506,7 +488,6 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Smoke Gray",
         codigo: "#5f6267",
         imagen: "/vehicles/seal-smoke.jpg",
-        imagenes: ["/vehicles/seal-gallery-2.png"],
       },
       {
         id: "su-black",
@@ -558,11 +539,6 @@ const catalogoInicial: ModeloVehiculo[] = [
         nombre: "Atlantis Grey",
         codigo: "#6f7478",
         imagen: "/vehicles/shark-grey.jpg",
-        imagenes: [
-          "/vehicles/shark-gallery-3.jpg",
-          "/vehicles/shark-gallery-1.jpg",
-          "/vehicles/shark-gallery-2.jpg",
-        ],
       },
       {
         id: "sh-white",
@@ -624,7 +600,6 @@ const actualizarImagenesOficiales = (catalogo: ModeloVehiculo[]) => {
           ...colorOficial,
           ...colorGuardado,
           imagen: colorOficial.imagen,
-          imagenes: colorOficial.imagenes,
         };
       }),
       cargadores: referencia.cargadores.map((cargadorOficial) => {
@@ -2983,7 +2958,6 @@ function VistaComercial({
   const [porcentajeAnticipo, setPorcentajeAnticipo] = useState(30);
   const [plazoSimulado, setPlazoSimulado] = useState(36);
   const [ahora, setAhora] = useState(Date.now());
-  const [indiceGaleria, setIndiceGaleria] = useState(0);
 
   useEffect(() => {
     const intervalo = window.setInterval(() => setAhora(Date.now()), 1000);
@@ -3009,10 +2983,6 @@ function VistaComercial({
   const color =
   modelo.colores.find((item) => item.id === colorActivoId) ||
   modelo.colores[0];
-  const imagenesGaleria = Array.from(
-    new Set([color.imagen, ...(color.imagenes ?? [])])
-  );
-  const imagenGaleria = imagenesGaleria[indiceGaleria] || color.imagen;
 
         const precioFinal = Math.max(
     propuesta.precioLista - propuesta.bonificacion,
@@ -3055,13 +3025,6 @@ function VistaComercial({
   const minutosRestantes = Math.floor((tiempoRestante % 3600000) / 60000);
   const segundosRestantes = Math.floor((tiempoRestante % 60000) / 1000);
   const propuestaVencida = tiempoRestante <= 0;
-
-  const cambiarImagenGaleria = (direccion: number) => {
-    const siguiente =
-      (indiceGaleria + direccion + imagenesGaleria.length) %
-      imagenesGaleria.length;
-    setIndiceGaleria(siguiente);
-  };
 
   return (
     <div className="aqv8-page">
@@ -3114,19 +3077,12 @@ function VistaComercial({
           <div className="aqv8-car-frame">
             <img
               className={cambiandoImagen ? "cambiando" : ""}
-              src={imagenGaleria}
-              alt={`${modelo.nombre} en color ${color.nombre}, imagen ${indiceGaleria + 1}`}
+              src={color.imagen}
+              alt={`${modelo.nombre} en color ${color.nombre}`}
               onError={(evento) => {
                 evento.currentTarget.src = FOTO_AUTO_ALTERNATIVA;
               }}
             />
-            {imagenesGaleria.length > 1 && (
-              <div className="aqv8-gallery-controls">
-                <button type="button" onClick={() => cambiarImagenGaleria(-1)} aria-label="Imagen anterior">←</button>
-                <span>{indiceGaleria + 1} / {imagenesGaleria.length}</span>
-                <button type="button" onClick={() => cambiarImagenGaleria(1)} aria-label="Imagen siguiente">→</button>
-              </div>
-            )}
           </div>
           <div className="aqv8-color-row">
             <div>
@@ -3148,7 +3104,6 @@ function VistaComercial({
 
             setTimeout(() => {
               setColorActivoId(opcion.id);
-              setIndiceGaleria(0);
               setCambiandoImagen(false);
             }, 180);
           }}            />
@@ -3415,20 +3370,28 @@ function VistaComercial({
         </section>
 
         <footer className={propuestaVencida ? "aqv8-validity vencida" : "aqv8-validity"}>
-          <b>{propuestaVencida ? "!" : "✓"}</b>
-          <div>
-            <strong>{propuestaVencida ? "Esta propuesta venció" : "Tiempo restante para aprovechar la propuesta"}</strong>
+          <div className="aqv8-validity-heading">
+            <b>{propuestaVencida ? "!" : "⌛"}</b>
+            <div>
+              <small>VIGENCIA DE LA PROPUESTA</small>
+              <strong>{propuestaVencida ? "Esta propuesta venció" : "Reservá antes de que finalice"}</strong>
+            </div>
+          </div>
+          <div className="aqv8-validity-detail">
             {!propuestaVencida && (
               <div className="aqv8-countdown">
-                <span><b>{diasRestantes}</b>días</span>
-                <span><b>{horasRestantes}</b>hs</span>
-                <span><b>{minutosRestantes}</b>min</span>
-                <span><b>{segundosRestantes}</b>seg</span>
+                <span><b>{String(diasRestantes).padStart(2, "0")}</b><small>DÍAS</small></span>
+                <i>:</i>
+                <span><b>{String(horasRestantes).padStart(2, "0")}</b><small>HORAS</small></span>
+                <i>:</i>
+                <span><b>{String(minutosRestantes).padStart(2, "0")}</b><small>MIN</small></span>
+                <i>:</i>
+                <span><b>{String(segundosRestantes).padStart(2, "0")}</b><small>SEG</small></span>
               </div>
             )}
-            <span>
-              Emitida el {new Date(propuesta.fecha).toLocaleString("es-AR")} · Vence el {new Date(fechaVencimiento).toLocaleString("es-AR")}
-            </span>
+            <p>
+              Emitida el {new Date(propuesta.fecha).toLocaleDateString("es-AR")} · Válida hasta el {new Date(fechaVencimiento).toLocaleDateString("es-AR")}
+            </p>
           </div>
         </footer>
       </main>
