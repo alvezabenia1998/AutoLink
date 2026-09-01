@@ -878,22 +878,14 @@ if (propuestaEncontrada) {
         propuestaEncontrada.primeraApertura ?? fechaApertura,
       ultimaApertura: fechaApertura,
     };
-    const datosOriginales = filaOriginal.datos as PropuestaDatos | null;
-
-    const { error: errorApertura } = await supabase
-      .from("propuestas")
-      .update({
-        datos: {
-          propuesta: propuestaConApertura,
-          modelo: datosOriginales?.modelo ?? null,
-          asesor: datosOriginales?.asesor ?? asesorLocal,
-        } satisfies PropuestaDatos,
-      })
-      .eq("id", filaOriginal.id);
+    const { data: aperturaRegistrada, error: errorApertura } = await supabase
+      .rpc("registrar_apertura_propuesta", {
+        p_propuesta_id: propuestaEncontrada.id,
+      });
 
     if (errorApertura) {
       console.error("No se pudo registrar la apertura:", errorApertura);
-    } else {
+    } else if (aperturaRegistrada === true) {
       sessionStorage.setItem(claveApertura, "1");
       propuestaParaAbrir = propuestaConApertura;
       setPropuestas((actuales) =>
@@ -1326,25 +1318,15 @@ const abrirPropuesta = (propuesta: Propuesta) => {
     );
     setPropuestaAbierta(propuestaActualizada);
 
-    const modelo =
-      modeloPropuestaAbierta ??
-      catalogo.find((item) => item.id === propuesta.modeloId) ??
-      null;
-    const asesorCorrecto = asesorPropuestaAbierta ?? asesor;
-
-    const { error } = await supabase
-      .from("propuestas")
-      .update({
-        datos: {
-          propuesta: propuestaActualizada,
-          modelo,
-          asesor: asesorCorrecto,
-        } satisfies PropuestaDatos,
-      })
-      .eq("datos->propuesta->>id", propuesta.id);
+    const { data: bonificacionGuardada, error } = await supabase
+      .rpc("revelar_bonificacion_propuesta", {
+        p_propuesta_id: propuesta.id,
+      });
 
     if (error) {
       console.error("No se pudo guardar el beneficio revelado:", error);
+    } else if (bonificacionGuardada !== true) {
+      console.error("Supabase no encontró la propuesta para revelar el beneficio.");
     }
   };
 
