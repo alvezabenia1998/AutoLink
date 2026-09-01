@@ -13,6 +13,66 @@
   font-weight: 800;
 }
 
+/* Revelado interactivo de la bonificación. */
+.aqv8-benefit-reveal {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0 8px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid #e7d7ad;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fffdf7, #fff7df);
+  box-shadow: 0 12px 30px rgba(132, 91, 20, .09);
+}
+
+.aqv8-benefit-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #17324d, #0c2238);
+  color: #f4c968;
+  font-size: 25px;
+}
+
+.aqv8-benefit-reveal span,
+.aqv8-benefit-reveal strong,
+.aqv8-benefit-reveal small { display: block; }
+.aqv8-benefit-reveal span { color: #9a6a16; font-size: 10px; font-weight: 900; letter-spacing: .13em; }
+.aqv8-benefit-reveal strong { margin-top: 4px; color: #17283a; font-size: 17px; }
+.aqv8-benefit-reveal small { margin-top: 4px; color: #6f7782; font-size: 12px; }
+.aqv8-benefit-reveal button {
+  min-height: 44px;
+  padding: 10px 17px;
+  border: 0;
+  border-radius: 10px;
+  background: #102e4a;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.aqv8-benefit-unlocked { animation: aqv8-benefit-in .45s ease both; }
+@keyframes aqv8-benefit-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 760px) {
+  .aqv8-benefit-reveal {
+    grid-template-columns: 46px minmax(0, 1fr);
+    padding: 15px;
+  }
+
+  .aqv8-benefit-icon { width: 46px; height: 46px; }
+  .aqv8-benefit-reveal button { grid-column: 1 / -1; width: 100%; }
+}
+
 .public-link-state {
   display: grid;
   min-height: 100vh;

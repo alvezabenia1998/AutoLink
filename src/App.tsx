@@ -92,6 +92,8 @@ type Propuesta = {
   aperturas?: number;
   primeraApertura?: string;
   ultimaApertura?: string;
+  bonificacionRevelada?: boolean;
+  fechaBonificacionRevelada?: string;
 };
 
 type Asesor = {
@@ -1308,6 +1310,44 @@ const abrirPropuesta = (propuesta: Propuesta) => {
     }
   };
 
+  const revelarBonificacion = async (propuesta: Propuesta) => {
+    if (propuesta.bonificacionRevelada || propuesta.bonificacion <= 0) return;
+
+    const propuestaActualizada: Propuesta = {
+      ...propuesta,
+      bonificacionRevelada: true,
+      fechaBonificacionRevelada: new Date().toISOString(),
+    };
+
+    setPropuestas((actuales) =>
+      actuales.map((item) =>
+        item.id === propuesta.id ? propuestaActualizada : item
+      )
+    );
+    setPropuestaAbierta(propuestaActualizada);
+
+    const modelo =
+      modeloPropuestaAbierta ??
+      catalogo.find((item) => item.id === propuesta.modeloId) ??
+      null;
+    const asesorCorrecto = asesorPropuestaAbierta ?? asesor;
+
+    const { error } = await supabase
+      .from("propuestas")
+      .update({
+        datos: {
+          propuesta: propuestaActualizada,
+          modelo,
+          asesor: asesorCorrecto,
+        } satisfies PropuestaDatos,
+      })
+      .eq("datos->propuesta->>id", propuesta.id);
+
+    if (error) {
+      console.error("No se pudo guardar el beneficio revelado:", error);
+    }
+  };
+
 const abrirWhatsApp = (
   propuesta: Propuesta,
   accion: "consulta" | "reserva" | "testdrive"
@@ -2465,6 +2505,7 @@ const subirImagenColor = async (
         copiarResumen={copiarResumen}
         copiarEnlace={copiarEnlacePropuesta}
         compartirEnlace={compartirEnlacePropuesta}
+        revelarBonificacion={revelarBonificacion}
         esEnlacePublico={esEnlacePublico}
       />       
        )}
@@ -2546,7 +2587,7 @@ function Inicio({
                 const iniciales = propuesta.cliente.split(" ").slice(0, 2).map((parte) => parte[0]).join("").toUpperCase();
                 return <button key={propuesta.id} onClick={() => abrirPropuesta(propuesta)}>
                   <span className="advisor-avatar">{iniciales}</span>
-                  <span className="advisor-client"><strong>{propuesta.cliente}</strong><small>BYD {modelo?.nombre || "Vehículo"} · {formatoApertura(propuesta.ultimaApertura)}</small></span>
+                  <span className="advisor-client"><strong>{propuesta.cliente}</strong><small>BYD {modelo?.nombre || "Vehículo"} · {formatoApertura(propuesta.ultimaApertura)}</small>{propuesta.bonificacionRevelada && <em>✦ Beneficio descubierto</em>}</span>
                   <span className={`advisor-status status-${propuesta.estado.toLowerCase()}`}>{propuesta.estado}</span>
                   <span className="advisor-amount">{formatoUSD(Math.max(propuesta.precioLista - propuesta.bonificacion, 0))}</span>
                   <DashboardIcon name="arrow" />
@@ -2652,6 +2693,11 @@ function ListaPropuestas({
                     {propuesta.ultimaApertura && (
                       <small className="apertura-propuesta">
                         {formatoApertura(propuesta.ultimaApertura)} · {propuesta.aperturas ?? 1} {(propuesta.aperturas ?? 1) === 1 ? "apertura" : "aperturas"}
+                      </small>
+                    )}
+                    {propuesta.bonificacionRevelada && (
+                      <small className="beneficio-descubierto">
+                        ✦ Beneficio descubierto {propuesta.fechaBonificacionRevelada ? formatoApertura(propuesta.fechaBonificacionRevelada).replace("Vista", "el") : ""}
                       </small>
                     )}
                   </div>
@@ -3086,6 +3132,7 @@ function VistaComercial({
   copiarResumen,
   copiarEnlace,
   compartirEnlace,
+  revelarBonificacion,
   esEnlacePublico,
 }: {
   propuesta: Propuesta;
@@ -3100,6 +3147,7 @@ function VistaComercial({
   copiarResumen: (propuesta: Propuesta) => void;
   copiarEnlace: (propuesta: Propuesta) => void;
   compartirEnlace: (propuesta: Propuesta) => void;
+  revelarBonificacion: (propuesta: Propuesta) => Promise<void>;
   esEnlacePublico: boolean;
 }) {
 
@@ -3109,6 +3157,9 @@ function VistaComercial({
   const [porcentajeAnticipo, setPorcentajeAnticipo] = useState(30);
   const [plazoSimulado, setPlazoSimulado] = useState(36);
   const [ahora, setAhora] = useState(Date.now());
+  const [beneficioRevelado, setBeneficioRevelado] = useState(
+    !esEnlacePublico || Boolean(propuesta.bonificacionRevelada)
+  );
 
   useEffect(() => {
     const intervalo = window.setInterval(() => setAhora(Date.now()), 1000);
@@ -3176,6 +3227,13 @@ function VistaComercial({
   const minutosRestantes = Math.floor((tiempoRestante % 3600000) / 60000);
   const segundosRestantes = Math.floor((tiempoRestante % 60000) / 1000);
   const propuestaVencida = tiempoRestante <= 0;
+  const beneficioOculto =
+    esEnlacePublico && propuesta.bonificacion > 0 && !beneficioRevelado;
+
+  const descubrirBeneficio = () => {
+    setBeneficioRevelado(true);
+    void revelarBonificacion(propuesta);
+  };
 
   return (
     <div className="aqv8-page">
@@ -3277,17 +3335,33 @@ function VistaComercial({
             <strong>{formatoUSD(propuesta.precioLista)}</strong>
           </div>
 
-          {propuesta.bonificacion > 0 && (
+          {beneficioOculto && (
+            <div className="aqv8-benefit-reveal">
+              <div className="aqv8-benefit-icon" aria-hidden="true">✦</div>
+              <div>
+                <span>BENEFICIO EXCLUSIVO</span>
+                <strong>Preparamos una sorpresa para vos</strong>
+                <small>Descubrí la bonificación especial de esta propuesta.</small>
+              </div>
+              <button type="button" onClick={descubrirBeneficio}>
+                Descubrir beneficio
+              </button>
+            </div>
+          )}
+
+          {propuesta.bonificacion > 0 && !beneficioOculto && (
             <div className="aqv8-price-line aqv8-discount">
               <span>Bonificación especial</span>
               <strong>- {formatoUSD(propuesta.bonificacion)}</strong>
             </div>
           )}
 
-          <div className="aqv8-price-final">
-            <span>Precio final del vehículo</span>
-            <strong>{formatoUSD(precioFinal)}</strong>
-          </div>
+          {!beneficioOculto && (
+            <div className="aqv8-price-final aqv8-benefit-unlocked">
+              <span>Precio final del vehículo</span>
+              <strong>{formatoUSD(precioFinal)}</strong>
+            </div>
+          )}
 
           {gastoTexto && propuesta.montoGastos > 0 && (
             <div className="aqv8-price-line aqv8-expense">
@@ -3296,7 +3370,7 @@ function VistaComercial({
             </div>
           )}
 
-          <div className="aqv8-currency-summary">
+          {!beneficioOculto && <div className="aqv8-currency-summary">
             <div>
               <span>Unidad</span>
               <strong>{formatoUSD(precioFinal)}</strong>
@@ -3313,7 +3387,7 @@ function VistaComercial({
               Los importes se muestran separados porque corresponden a monedas
               diferentes.
             </small>
-          </div>
+          </div>}
         </section>
 
         <section className="aqv8-benefits">
@@ -3386,7 +3460,7 @@ function VistaComercial({
               <div className="aqv8-purchase-icon">💵</div>
               <div>
                 <span>Contado</span>
-                <h3>{formatoUSD(precioFinal)}</h3>
+                <h3>{beneficioOculto ? "Beneficio por descubrir" : formatoUSD(precioFinal)}</h3>
                 <p>
                   Precio de la unidad. Los gastos en pesos se muestran por
                   separado.
@@ -3413,7 +3487,7 @@ function VistaComercial({
           )}
         </section>
 
-        {propuesta.formaCompra === "credito" && <section className="aqv8-finance-simulator">
+        {propuesta.formaCompra === "credito" && !beneficioOculto && <section className="aqv8-finance-simulator">
           <div className="aqv8-section-title">
             <span>SIMULÁ TU OPERACIÓN</span>
             <h2>Financiación estimada</h2>
@@ -3505,9 +3579,11 @@ function VistaComercial({
               WhatsApp
             </button>
             <a href={`tel:+${asesor.telefono}`}>Llamar</a>
-            <button onClick={() => copiarResumen(propuesta)}>
-              Copiar resumen
-            </button>
+            {!beneficioOculto && (
+              <button onClick={() => copiarResumen(propuesta)}>
+                Copiar resumen
+              </button>
+            )}
           </div>
         </section>
 
@@ -3548,7 +3624,7 @@ function VistaComercial({
       </main>
 
       <aside className="aqv8-sticky-actions" aria-label="Acciones rápidas">
-        <div><span>Precio final</span><strong>{formatoUSD(precioFinal)}</strong></div>
+        <div><span>{beneficioOculto ? "Beneficio exclusivo" : "Precio final"}</span><strong>{beneficioOculto ? "Por descubrir" : formatoUSD(precioFinal)}</strong></div>
         <button onClick={() => abrirWhatsApp(propuesta, "consulta")}>Hablar con mi asesor</button>
         <button onClick={() => abrirWhatsApp(propuesta, "reserva")}>Reservar unidad</button>
       </aside>

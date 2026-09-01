@@ -5976,6 +5976,12 @@ body,
   font-weight: 750;
 }
 
+.cliente-propuesta .beneficio-descubierto {
+  margin-top: 4px;
+  color: #8a5b10;
+  font-weight: 750;
+}
+
 /* Correcciones finales de layout: deben prevalecer sobre estilos heredados. */
 .content {
   width: calc(100% - 290px);

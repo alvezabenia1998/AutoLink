@@ -81,6 +81,7 @@
 .advisor-avatar { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 10px; background: #edf3f6; color: #294963; font-size: 10px; font-weight: 850; }
 .advisor-client { min-width: 0; }
 .advisor-client strong, .advisor-client small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.advisor-client em { display: block; margin-top: 4px; color: #16834a; font-size: 10px; font-style: normal; font-weight: 800; }
 .advisor-client strong { color: #1b2f43; font-size: 12px; }
 .advisor-client small { margin-top: 5px; color: #84909f; font-size: 9px; }
 .advisor-client small::first-letter { text-transform: uppercase; }
