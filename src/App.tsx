@@ -89,6 +89,9 @@ type Propuesta = {
   observaciones: string;
   vigenciaDias: number;
   estado: "Guardada" | "Enviada" | "Interesado";
+  aperturas?: number;
+  primeraApertura?: string;
+  ultimaApertura?: string;
 };
 
 type Asesor = {
@@ -653,6 +656,17 @@ const formatoPesos = (valor: number) =>
     maximumFractionDigits: 0,
   }).format(Math.max(valor || 0, 0));
 
+const formatoApertura = (fecha?: string) => {
+  if (!fecha) return "Todavía no fue vista";
+
+  return `Vista ${new Intl.DateTimeFormat("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(fecha))}`;
+};
+
 const leerArchivoComoDataURL = (archivo: File): Promise<string> =>
   new Promise((resolve, reject) => {
     const lector = new FileReader();
@@ -841,11 +855,56 @@ try {
     );
 
 if (propuestaEncontrada) {
-  setPropuestaAbierta(propuestaEncontrada);
-
   const filaOriginal = filas?.find(
     (fila) => fila.datos?.propuesta?.id === propuestaEncontrada.id
   );
+
+  let propuestaParaAbrir = propuestaEncontrada;
+  const claveApertura = `nexora-apertura-${propuestaEncontrada.id}`;
+  const { data: sesionActual } = await supabase.auth.getSession();
+
+  if (
+    filaOriginal &&
+    !sesionActual.session &&
+    !sessionStorage.getItem(claveApertura)
+  ) {
+    const fechaApertura = new Date().toISOString();
+    const propuestaConApertura: Propuesta = {
+      ...propuestaEncontrada,
+      aperturas: (propuestaEncontrada.aperturas ?? 0) + 1,
+      primeraApertura:
+        propuestaEncontrada.primeraApertura ?? fechaApertura,
+      ultimaApertura: fechaApertura,
+    };
+    const datosOriginales = filaOriginal.datos as PropuestaDatos | null;
+
+    const { error: errorApertura } = await supabase
+      .from("propuestas")
+      .update({
+        datos: {
+          propuesta: propuestaConApertura,
+          modelo: datosOriginales?.modelo ?? null,
+          asesor: datosOriginales?.asesor ?? asesorLocal,
+        } satisfies PropuestaDatos,
+      })
+      .eq("id", filaOriginal.id);
+
+    if (errorApertura) {
+      console.error("No se pudo registrar la apertura:", errorApertura);
+    } else {
+      sessionStorage.setItem(claveApertura, "1");
+      propuestaParaAbrir = propuestaConApertura;
+      setPropuestas((actuales) =>
+        actuales.map((propuesta) =>
+          propuesta.id === propuestaConApertura.id
+            ? propuestaConApertura
+            : propuesta
+        )
+      );
+    }
+  }
+
+  setPropuestaAbierta(propuestaParaAbrir);
 
   setModeloPropuestaAbierta(filaOriginal?.datos?.modelo ?? null);
   setAsesorPropuestaAbierta(filaOriginal?.datos?.asesor ?? asesorLocal);
@@ -914,6 +973,41 @@ if (propuestaEncontrada) {
   useEffect(() => {
     localStorage.setItem(STORAGE_PROPUESTAS, JSON.stringify(propuestas));
   }, [propuestas]);
+
+  useEffect(() => {
+    if (esEnlacePublico) return;
+
+    const canal = supabase
+      .channel("propuestas-panel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "propuestas" },
+        (cambio) => {
+          const filaActualizada = cambio.new as PropuestaFila | undefined;
+          if (!filaActualizada?.datos?.propuesta) return;
+
+          const propuestaActualizada = filaAPropuesta(filaActualizada);
+          setPropuestas((actuales) => {
+            const existe = actuales.some(
+              (propuesta) => propuesta.id === propuestaActualizada.id
+            );
+
+            return existe
+              ? actuales.map((propuesta) =>
+                  propuesta.id === propuestaActualizada.id
+                    ? propuestaActualizada
+                    : propuesta
+                )
+              : [propuestaActualizada, ...actuales];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(canal);
+    };
+  }, [esEnlacePublico]);
 
 useEffect(() => {
   const guardarCatalogo = async () => {
@@ -2452,7 +2546,7 @@ function Inicio({
                 const iniciales = propuesta.cliente.split(" ").slice(0, 2).map((parte) => parte[0]).join("").toUpperCase();
                 return <button key={propuesta.id} onClick={() => abrirPropuesta(propuesta)}>
                   <span className="advisor-avatar">{iniciales}</span>
-                  <span className="advisor-client"><strong>{propuesta.cliente}</strong><small>BYD {modelo?.nombre || "Vehículo"} · {new Date(propuesta.fecha).toLocaleDateString("es-AR")}</small></span>
+                  <span className="advisor-client"><strong>{propuesta.cliente}</strong><small>BYD {modelo?.nombre || "Vehículo"} · {formatoApertura(propuesta.ultimaApertura)}</small></span>
                   <span className={`advisor-status status-${propuesta.estado.toLowerCase()}`}>{propuesta.estado}</span>
                   <span className="advisor-amount">{formatoUSD(Math.max(propuesta.precioLista - propuesta.bonificacion, 0))}</span>
                   <DashboardIcon name="arrow" />
@@ -2555,6 +2649,11 @@ function ListaPropuestas({
                         : "Crédito"}
                     </p>
                     <small>{propuesta.id}</small>
+                    {propuesta.ultimaApertura && (
+                      <small className="apertura-propuesta">
+                        {formatoApertura(propuesta.ultimaApertura)} · {propuesta.aperturas ?? 1} {(propuesta.aperturas ?? 1) === 1 ? "apertura" : "aperturas"}
+                      </small>
+                    )}
                   </div>
                 </div>
 

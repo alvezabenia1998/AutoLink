@@ -5970,6 +5970,12 @@ body,
   -webkit-text-fill-color: currentColor;
 }
 
+.cliente-propuesta .apertura-propuesta {
+  margin-top: 5px;
+  color: #16834a;
+  font-weight: 750;
+}
+
 /* Correcciones finales de layout: deben prevalecer sobre estilos heredados. */
 .content {
   width: calc(100% - 290px);

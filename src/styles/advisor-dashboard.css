@@ -83,6 +83,7 @@
 .advisor-client strong, .advisor-client small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .advisor-client strong { color: #1b2f43; font-size: 12px; }
 .advisor-client small { margin-top: 5px; color: #84909f; font-size: 9px; }
+.advisor-client small::first-letter { text-transform: uppercase; }
 .advisor-status { min-width: 72px; padding: 6px 9px; border-radius: 999px; font-size: 9px; font-weight: 800; text-align: center; }
 .advisor-status.status-guardada { background: #f0f2f5; color: #697586; }
 .advisor-status.status-enviada { background: #ebf4ff; color: #28699d; }
