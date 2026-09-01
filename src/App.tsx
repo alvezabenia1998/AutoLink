@@ -2554,6 +2554,13 @@ function Inicio({
     day: "numeric",
     month: "long",
   }).format(new Date());
+  const ultimaBonificacionDescubierta = propuestas
+    .filter((propuesta) => propuesta.fechaBonificacionRevelada)
+    .sort(
+      (a, b) =>
+        new Date(b.fechaBonificacionRevelada ?? 0).getTime() -
+        new Date(a.fechaBonificacionRevelada ?? 0).getTime()
+    )[0];
 
   return (
     <div className="advisor-dashboard">
@@ -2567,6 +2574,24 @@ function Inicio({
           <DashboardIcon name="plus" /> Nueva propuesta
         </button>
       </header>
+
+      {ultimaBonificacionDescubierta && (
+        <button
+          className="advisor-notification"
+          type="button"
+          onClick={() => abrirPropuesta(ultimaBonificacionDescubierta)}
+        >
+          <span className="advisor-notification-icon">✦</span>
+          <span>
+            <small>NUEVA INTERACCIÓN</small>
+            <strong>{ultimaBonificacionDescubierta.cliente} descubrió su beneficio</strong>
+            <em>
+              Bonificación de {formatoUSD(ultimaBonificacionDescubierta.bonificacion)} · {formatoApertura(ultimaBonificacionDescubierta.fechaBonificacionRevelada)}
+            </em>
+          </span>
+          <DashboardIcon name="arrow" />
+        </button>
+      )}
 
       <section className="advisor-metrics" aria-label="Indicadores comerciales">
         <article><div className="advisor-metric-icon navy"><DashboardIcon name="file" /></div><div><span>Propuestas totales</span><strong>{propuestas.length}</strong><small>{guardadas} en preparación</small></div></article>
@@ -3160,6 +3185,7 @@ function VistaComercial({
   const [beneficioRevelado, setBeneficioRevelado] = useState(
     !esEnlacePublico || Boolean(propuesta.bonificacionRevelada)
   );
+  const [revelandoBeneficio, setRevelandoBeneficio] = useState(false);
 
   useEffect(() => {
     const intervalo = window.setInterval(() => setAhora(Date.now()), 1000);
@@ -3231,8 +3257,14 @@ function VistaComercial({
     esEnlacePublico && propuesta.bonificacion > 0 && !beneficioRevelado;
 
   const descubrirBeneficio = () => {
-    setBeneficioRevelado(true);
-    void revelarBonificacion(propuesta);
+    if (revelandoBeneficio) return;
+    setRevelandoBeneficio(true);
+
+    window.setTimeout(() => {
+      setBeneficioRevelado(true);
+      setRevelandoBeneficio(false);
+      void revelarBonificacion(propuesta);
+    }, 850);
   };
 
   return (
@@ -3336,15 +3368,18 @@ function VistaComercial({
           </div>
 
           {beneficioOculto && (
-            <div className="aqv8-benefit-reveal">
-              <div className="aqv8-benefit-icon" aria-hidden="true">✦</div>
+            <div className={`aqv8-benefit-reveal${revelandoBeneficio ? " is-revealing" : ""}`}>
+              <div className="aqv8-benefit-icon" aria-hidden="true">
+                <span>✦</span>
+                <i /><i /><i /><i /><i /><i />
+              </div>
               <div>
                 <span>BENEFICIO EXCLUSIVO</span>
                 <strong>Preparamos una sorpresa para vos</strong>
                 <small>Descubrí la bonificación especial de esta propuesta.</small>
               </div>
-              <button type="button" onClick={descubrirBeneficio}>
-                Descubrir beneficio
+              <button type="button" onClick={descubrirBeneficio} disabled={revelandoBeneficio}>
+                {revelandoBeneficio ? "Descubriendo..." : "Descubrir beneficio"}
               </button>
             </div>
           )}

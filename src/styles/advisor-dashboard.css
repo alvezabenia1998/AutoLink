@@ -40,6 +40,31 @@
 }
 .advisor-primary svg { width: 17px; height: 17px; }
 
+.advisor-notification {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 44px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 14px;
+  margin: -8px 0 20px;
+  padding: 14px 18px;
+  border: 1px solid #d8eadf;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f4fbf7, #fffdf5);
+  color: #183047;
+  box-shadow: 0 10px 28px rgba(22, 131, 74, .08);
+  font: inherit;
+  text-align: left;
+}
+.advisor-notification-icon { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 12px; background: #17324d; color: #f4c968; font-size: 21px; }
+.advisor-notification > span:nth-child(2) { min-width: 0; }
+.advisor-notification small, .advisor-notification strong, .advisor-notification em { display: block; }
+.advisor-notification small { color: #16834a; font-size: 9px; font-weight: 900; letter-spacing: .13em; }
+.advisor-notification strong { margin-top: 3px; font-size: 14px; }
+.advisor-notification em { margin-top: 4px; overflow: hidden; color: #708091; font-size: 11px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.advisor-notification > svg { width: 18px; color: #7f8e9d; }
+.advisor-notification:hover { border-color: #9fd3b3; transform: translateY(-1px); }
+
 .advisor-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
 .advisor-metrics article {
   display: grid;
