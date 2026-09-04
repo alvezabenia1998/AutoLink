@@ -3290,13 +3290,35 @@ function VistaComercial({
   const [colorActivoId, setColorActivoId] = useState(propuesta.colorId);
   const [cambiandoImagen, setCambiandoImagen] = useState(false);
   const [fichaExpandida, setFichaExpandida] = useState(false);
-  const [porcentajeAnticipo, setPorcentajeAnticipo] = useState(30);
-  const [plazoSimulado, setPlazoSimulado] = useState(36);
   const [ahora, setAhora] = useState(Date.now());
-  const [beneficioRevelado, setBeneficioRevelado] = useState(
-    !esEnlacePublico || Boolean(propuesta.bonificacionRevelada)
+  const clavePresentacion = `nexora-presentacion-vista-${propuesta.id}`;
+  const presentacionForzada =
+    import.meta.env.DEV &&
+    new URLSearchParams(window.location.search).get("presentacion") === "1";
+  const resumenForzado =
+    import.meta.env.DEV &&
+    new URLSearchParams(window.location.search).get("etapa") === "resumen";
+  const claveBeneficio = `nexora-beneficio-visto-${propuesta.id}`;
+  const presentacionYaVista = localStorage.getItem(clavePresentacion) === "vista";
+  const beneficioYaVisto = localStorage.getItem(claveBeneficio) === "visto";
+  const [beneficioRevelado, setBeneficioRevelado] = useState(() =>
+    !esEnlacePublico || resumenForzado ||
+    (!presentacionForzada && beneficioYaVisto)
   );
   const [revelandoBeneficio, setRevelandoBeneficio] = useState(false);
+  const [mostrarPresentacion, setMostrarPresentacion] = useState(() =>
+    esEnlacePublico &&
+    !resumenForzado && (presentacionForzada || !presentacionYaVista)
+  );
+  const [cerrandoPresentacion, setCerrandoPresentacion] = useState(false);
+  const [mostrarPantallaBeneficio, setMostrarPantallaBeneficio] = useState(
+    esEnlacePublico && !resumenForzado && !presentacionForzada && presentacionYaVista && !beneficioYaVisto && propuesta.bonificacion > 0
+  );
+  const [mostrarPantallaResumen, setMostrarPantallaResumen] = useState(
+    esEnlacePublico && (resumenForzado || (!presentacionForzada && presentacionYaVista && (beneficioYaVisto || propuesta.bonificacion <= 0)))
+  );
+  const [inspectorAbierto, setInspectorAbierto] = useState(false);
+  const [zoomInspector, setZoomInspector] = useState(1);
 
   useEffect(() => {
     const intervalo = window.setInterval(() => setAhora(Date.now()), 1000);
@@ -3322,6 +3344,19 @@ function VistaComercial({
   const color =
   modelo.colores.find((item) => item.id === colorActivoId) ||
   modelo.colores[0];
+  const imagenesTransparentes: Record<string, string> = {
+    "/vehicles/atto-white.jpg": "/vehicles/atto-white-transparent.png",
+    "/vehicles/atto-grey.jpg": "/vehicles/atto-grey-transparent.png",
+    "/vehicles/atto-black.jpg": "/vehicles/atto-black-transparent.png",
+    "/vehicles/atto-cyan.jpg": "/vehicles/atto-cyan-transparent.png",
+  };
+  const imagenExperiencia = imagenesTransparentes[color.imagen] || color.imagen;
+  const inicialesCliente = propuesta.cliente
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0]?.toUpperCase())
+    .join("");
 
         const precioFinal = Math.max(
     propuesta.precioLista - propuesta.bonificacion,
@@ -3353,8 +3388,6 @@ function VistaComercial({
       : propuesta.tipoGasto === "patentamiento-completo"
       ? "Patentamiento completo"
       : "";
-  const anticipoSimulado = Math.round((precioFinal * porcentajeAnticipo) / 100);
-  const cuotaSimulada = Math.round((precioFinal - anticipoSimulado) / plazoSimulado);
   const fechaVencimiento =
     new Date(propuesta.fecha).getTime() +
     propuesta.vigenciaDias * 24 * 60 * 60 * 1000;
@@ -3372,14 +3405,194 @@ function VistaComercial({
     setRevelandoBeneficio(true);
 
     window.setTimeout(() => {
+      localStorage.setItem(claveBeneficio, "visto");
       setBeneficioRevelado(true);
       setRevelandoBeneficio(false);
       void revelarBonificacion(propuesta);
+      window.setTimeout(() => {
+        setMostrarPantallaBeneficio(false);
+        setMostrarPantallaResumen(true);
+      }, 650);
     }, 850);
   };
 
+  const entrarEnPropuesta = () => {
+    localStorage.setItem(clavePresentacion, "vista");
+    setCerrandoPresentacion(true);
+    window.setTimeout(() => {
+      setMostrarPresentacion(false);
+      setMostrarPantallaBeneficio(esEnlacePublico && propuesta.bonificacion > 0);
+      setMostrarPantallaResumen(esEnlacePublico && propuesta.bonificacion <= 0);
+    }, 520);
+  };
+
   return (
-    <div className="aqv8-page">
+    <div className={`aqv8-page${esEnlacePublico ? " aqv8-experience-shell" : ""}`}>
+      {mostrarPresentacion && (
+        <section
+          className={`aqv8-welcome${cerrandoPresentacion ? " is-closing" : ""}`}
+          aria-label="Presentación de la propuesta"
+        >
+          <div className="aqv8-welcome-glow aqv8-welcome-glow-one" />
+          <div className="aqv8-welcome-glow aqv8-welcome-glow-two" />
+          <div className="aqv8-welcome-bar">
+            <div className="aqv8-welcome-brand">
+              {asesor.logo ? <img src={asesor.logo} alt={asesor.concesionario} /> : <strong>BYD</strong>}
+            </div>
+            <span>PROPUESTA PERSONALIZADA</span>
+          </div>
+          <div className="aqv8-welcome-copy">
+            <span>PREPARAMOS ALGO ESPECIAL PARA VOS</span>
+            <h1>Hola, {propuesta.cliente.split(" ")[0]}</h1>
+            <p>Tu próximo BYD está más cerca. Descubrí una propuesta pensada especialmente para vos.</p>
+            <button type="button" onClick={entrarEnPropuesta}>Ver mi propuesta <b>→</b></button>
+            <small>Esta bienvenida se muestra una sola vez.</small>
+          </div>
+          <div className="aqv8-welcome-vehicle">
+            <span>{modelo.nombre}</span>
+            <img
+              src={imagenExperiencia}
+              alt={`${modelo.nombre} en color ${color.nombre}`}
+              onError={(evento) => { evento.currentTarget.src = FOTO_AUTO_ALTERNATIVA; }}
+            />
+          </div>
+        </section>
+      )}
+      {mostrarPantallaBeneficio && (
+        <section className={`aqv8-benefit-screen${revelandoBeneficio ? " is-opening" : ""}${!beneficioOculto ? " is-open" : ""}`}>
+          <header className="aqv8-experience-header">
+            <div><strong>NEXORA</strong><i /><b>BYD</b></div>
+            <div><span>▣ &nbsp; Mi propuesta</span><em>{inicialesCliente || "BYD"}</em></div>
+          </header>
+
+          <nav className="aqv8-experience-steps" aria-label="Progreso de la propuesta">
+            <div className="done"><b>✓</b><span><strong>1 &nbsp; Configuración</strong><small>Tu vehículo</small></span></div>
+            <i />
+            <div className={beneficioOculto ? "active" : "done"}><b>{beneficioOculto ? "2" : "✓"}</b><span><strong>Beneficio exclusivo</strong><small>{beneficioOculto ? "Descubrí tu bonificación" : "Beneficio aplicado"}</small></span></div>
+            <i />
+            <div className={!beneficioOculto ? "active" : ""}><b>3</b><span><strong>Resumen</strong><small>Tu propuesta final</small></span></div>
+          </nav>
+
+          <main className="aqv8-experience-main">
+            <div className="aqv8-experience-orbit orbit-one" />
+            <div className="aqv8-experience-orbit orbit-two" />
+            <div className="aqv8-experience-model">
+              <span>TU CONFIGURACIÓN</span>
+              <h2>BYD <strong>{modelo.nombre}</strong></h2>
+              <p>{modelo.nombre} · Versión {propuesta.version} · {color.nombre}</p>
+            </div>
+            <aside className="aqv8-experience-price"><span>Precio de lista</span><strong>{formatoUSD(propuesta.precioLista)}</strong></aside>
+            <div className="aqv8-experience-car">
+              <span className="aqv8-car-edition">VERSIÓN {propuesta.version}</span>
+              <span className="aqv8-car-interaction">⌕ Tocá el vehículo para verlo en detalle</span>
+              <img
+                src={imagenExperiencia}
+                alt={`${modelo.nombre} ${color.nombre}`}
+                draggable={false}
+                onClick={() => { setZoomInspector(1); setInspectorAbierto(true); }}
+              />
+            </div>
+            <aside className="aqv8-experience-colors">
+              <strong>Color exterior</strong>
+              {modelo.colores.map((opcion) => (
+                <button type="button" key={opcion.id} className={opcion.id === color.id ? "selected" : ""} onClick={() => setColorActivoId(opcion.id)}>
+                  <i /><b style={{ backgroundColor: opcion.codigo }} /><span>{opcion.nombre}</span>
+                </button>
+              ))}
+            </aside>
+
+            <article className="aqv8-premium-envelope">
+              <div className="aqv8-envelope-folds" aria-hidden="true"><i /><i /><i /></div>
+              <div className="aqv8-premium-sparkles" aria-hidden="true"><i>✦</i><i>✧</i><i>✦</i><i>·</i><i>✧</i></div>
+              <div className="aqv8-celebration" aria-hidden="true">
+                {Array.from({ length: 14 }).map((_, indice) => <i key={indice} />)}
+              </div>
+              <div className="aqv8-premium-seal">N</div>
+              <span>{beneficioOculto ? "BENEFICIO EXCLUSIVO" : "BENEFICIO DESBLOQUEADO"}</span>
+              <i />
+              <h1>{beneficioOculto ? "Preparamos una sorpresa para vos" : `Ahorrás ${formatoUSD(propuesta.bonificacion)}`}</h1>
+              <p>{beneficioOculto ? "Descubrí la bonificación especial de esta propuesta" : "Tu regalo está listo. Preparando tu propuesta final..."}</p>
+              {beneficioOculto ? (
+                <button type="button" onClick={descubrirBeneficio} disabled={revelandoBeneficio}>
+                  {revelandoBeneficio ? "Descubriendo..." : "Descubrir mi beneficio"}
+                </button>
+              ) : (
+                <strong className="aqv8-benefit-confirmed">✓ BENEFICIO APLICADO A TU PROPUESTA</strong>
+              )}
+            </article>
+          </main>
+
+          {inspectorAbierto && (
+            <aside className="aqv8-inspector" role="dialog" aria-modal="true" aria-label="Vista detallada del vehículo">
+              <div className="aqv8-inspector-toolbar">
+                <div><span>VISTA EN DETALLE</span><strong>{modelo.nombre} · {color.nombre}</strong></div>
+                <button type="button" onClick={() => setInspectorAbierto(false)} aria-label="Cerrar vista detallada">×</button>
+              </div>
+              <div className="aqv8-inspector-stage" onWheel={(evento) => {
+                evento.preventDefault();
+                setZoomInspector((actual) => Math.max(.8, Math.min(2.2, actual + (evento.deltaY < 0 ? .12 : -.12))));
+              }}>
+                <div className="aqv8-inspector-halo" />
+                <img src={imagenExperiencia} alt={`${modelo.nombre} en ${color.nombre}`} draggable={false} style={{ transform: `scale(${zoomInspector})` }} />
+                <small>Usá la rueda o los controles para acercar</small>
+              </div>
+              <div className="aqv8-inspector-controls">
+                <div className="aqv8-inspector-colors">
+                  {modelo.colores.map((opcion) => <button type="button" key={opcion.id} className={opcion.id === color.id ? "selected" : ""} style={{ backgroundColor: opcion.codigo }} onClick={() => { setColorActivoId(opcion.id); setZoomInspector(1); }} aria-label={`Ver ${opcion.nombre}`} />)}
+                </div>
+                <div className="aqv8-inspector-zoom"><button type="button" onClick={() => setZoomInspector((actual) => Math.max(.8, actual - .2))}>−</button><span>{Math.round(zoomInspector * 100)}%</span><button type="button" onClick={() => setZoomInspector((actual) => Math.min(2.2, actual + .2))}>+</button><button type="button" onClick={() => setZoomInspector(1)}>Restablecer</button></div>
+              </div>
+            </aside>
+          )}
+
+          <footer className="aqv8-experience-footer">
+            <div><b>♢</b><span><strong>Proceso 100% seguro</strong><small>Tus datos están protegidos</small></span></div>
+            <div><b>◌</b><span><strong>¿Tenés dudas?</strong><small>Contactá a tu asesor</small></span></div>
+            <div><b>♙</b><span><strong>Propuesta personalizada</strong><small>Creada especialmente para vos</small></span></div>
+          </footer>
+        </section>
+      )}
+      {mostrarPantallaResumen && (
+        <section className="aqv8-summary-screen">
+          <header className="aqv8-experience-header">
+            <div><strong>NEXORA</strong><i /><b>BYD</b></div>
+            <div><span>▣ &nbsp; Mi propuesta</span><em>{inicialesCliente || "BYD"}</em></div>
+          </header>
+
+          <nav className="aqv8-experience-steps" aria-label="Progreso de la propuesta">
+            <div className="done"><b>1</b><span><strong>Elegí tu BYD</strong></span></div><i />
+            <div className="done"><b>2</b><span><strong>Personalización</strong></span></div><i />
+            <div className="active"><b>3</b><span><strong>Tu cotización</strong></span></div>
+          </nav>
+
+          <main className="aqv8-summary-main">
+            <article className="aqv8-summary-vehicle">
+              <h1>Tu BYD ideal <span>✦</span></h1>
+              <div className="aqv8-summary-selection">
+                <div className="aqv8-summary-car"><img src={imagenExperiencia} alt={`${modelo.nombre} ${color.nombre}`} /></div>
+                <div className="aqv8-summary-spec"><h2>{modelo.nombre} · Versión {propuesta.version}</h2><p><i style={{ backgroundColor: color.codigo }} /> {color.nombre}</p></div>
+              </div>
+              <div className="aqv8-summary-features">
+                <div><b>♢</b><span><strong>Garantía</strong><small>{modelo.garantia}<br/>Lo que ocurra primero</small></span></div>
+                <div><b>▣</b><span><strong>Cargador incluido</strong><small>{cargadores[0]?.nombre || "A coordinar"}<br/>{cargadores[0]?.descripcion || "Con tu asesor"}</small></span></div>
+                <div><b>▦</b><span><strong>Entrega estimada</strong><small>{asesor.textoEntrega}<br/>Sujeto a disponibilidad</small></span></div>
+                <div><b>▤</b><span><strong>Gastos de retiro</strong><small>{gastoTexto || "Sin gastos informados"}<br/>{propuesta.montoGastos > 0 ? formatoPesos(propuesta.montoGastos) : "A convenir"}</small></span></div>
+              </div>
+              <div className="aqv8-summary-congrats"><b>{inicialesCliente || "BYD"}</b><span><strong>Excelente elección, {propuesta.cliente.split(" ")[0]}</strong><small>Tu asesor <b>{asesor.nombre}</b> ya está disponible para ayudarte.</small></span></div>
+            </article>
+            <article className="aqv8-summary-price">
+              <div className="aqv8-summary-check">✓</div>
+              <span>Bonificación exclusiva</span>
+              <div className="discount"><strong>- {formatoUSD(propuesta.bonificacion)}</strong></div>
+              <i />
+              <div className="final"><small>Precio final del vehículo</small><strong>{formatoUSD(precioFinal)}</strong></div>
+              <div className="aqv8-summary-saving"><b>◇</b><span>Ahorrás<strong>{formatoUSD(propuesta.bonificacion)}</strong></span></div>
+              <button className="primary" type="button" onClick={() => abrirWhatsApp(propuesta, "reserva")}>Quiero avanzar <b>→</b></button>
+              <button className="secondary" type="button" onClick={() => abrirWhatsApp(propuesta, "consulta")}>Tengo una consulta <b>◯</b></button>
+            </article>
+          </main>
+        </section>
+      )}
       <header className="aqv8-topbar">
         <div className="aqv8-brand">
           {asesor.logo ? (
@@ -3467,8 +3680,24 @@ function VistaComercial({
           <button onClick={() => document.getElementById("resumen-propuesta")?.scrollIntoView({ behavior: "smooth" })}>⌂ Resumen</button>
           <button onClick={() => { setFichaExpandida(true); window.setTimeout(() => document.getElementById("ficha-tecnica")?.scrollIntoView({ behavior: "smooth" }), 50); }}>▤ Ficha técnica</button>
           <button onClick={() => document.getElementById("equipamiento-propuesta")?.scrollIntoView({ behavior: "smooth" })}>◇ Equipamiento</button>
-          {propuesta.formaCompra === "credito" && <button onClick={() => document.getElementById("financiacion-propuesta")?.scrollIntoView({ behavior: "smooth" })}>◉ Financiación</button>}
         </nav>
+
+        <section className="aqv8-ideal" aria-labelledby="titulo-byd-ideal">
+          <div className="aqv8-ideal-heading">
+            <span>TU CONFIGURACIÓN</span>
+            <h2 id="titulo-byd-ideal">Tu BYD ideal</h2>
+            <p>Todo lo que elegiste, reunido en una experiencia simple y clara.</p>
+          </div>
+          <div className="aqv8-ideal-grid">
+            <article className="aqv8-ideal-vehicle">
+              <img src={imagenExperiencia} alt={modelo.nombre} onError={(evento) => { evento.currentTarget.src = FOTO_AUTO_ALTERNATIVA; }} />
+              <div><span>MODELO ELEGIDO</span><strong>{modelo.nombre}</strong><small>Versión {propuesta.version} · {color.nombre}</small></div>
+            </article>
+            <article><b>✓</b><span>Garantía oficial</span><strong>{modelo.garantia}</strong></article>
+            <article><b>▣</b><span>Entrega estimada</span><strong>{asesor.textoEntrega}</strong></article>
+            <article><b>◇</b><span>Carga incluida</span><strong>{cargadores.length > 0 ? `${cargadores.length} ${cargadores.length === 1 ? "cargador" : "cargadores"}` : "A coordinar"}</strong></article>
+          </div>
+        </section>
 
         <section className="aqv8-price-card" id="resumen-propuesta">
           <h2>Resumen de precios</h2>
@@ -3478,7 +3707,7 @@ function VistaComercial({
             <strong>{formatoUSD(propuesta.precioLista)}</strong>
           </div>
 
-          {beneficioOculto && (
+          {beneficioOculto && !esEnlacePublico && (
             <div className={`aqv8-benefit-reveal${revelandoBeneficio ? " is-revealing" : ""}`}>
               <div className="aqv8-benefit-icon" aria-hidden="true">
                 <span>✦</span>
@@ -3509,13 +3738,6 @@ function VistaComercial({
             </div>
           )}
 
-          {gastoTexto && propuesta.montoGastos > 0 && (
-            <div className="aqv8-price-line aqv8-expense">
-              <span>{gastoTexto}</span>
-              <strong>{formatoPesos(propuesta.montoGastos)}</strong>
-            </div>
-          )}
-
           {!beneficioOculto && <div className="aqv8-currency-summary">
             <div>
               <span>Unidad</span>
@@ -3534,6 +3756,24 @@ function VistaComercial({
               diferentes.
             </small>
           </div>}
+        </section>
+
+        <section className="aqv8-pickup-costs">
+          <div className="aqv8-pickup-icon">⌁</div>
+          <div className="aqv8-pickup-copy">
+            <span>GASTOS DE RETIRO</span>
+            <h2>{gastoTexto || "Sin gastos de retiro informados"}</h2>
+            <p>
+              {gastoTexto
+                ? "Importe configurado por tu asesor para completar la entrega de la unidad."
+                : "No se agregaron gastos de retiro a esta propuesta. Cualquier cambio será informado por tu asesor."}
+            </p>
+          </div>
+          <div className="aqv8-pickup-amount">
+            <span>Importe en pesos</span>
+            <strong>{propuesta.montoGastos > 0 ? formatoPesos(propuesta.montoGastos) : "$ 0"}</strong>
+            <small>Se abona por separado del valor del vehículo.</small>
+          </div>
         </section>
 
         <section className="aqv8-benefits">
@@ -3632,27 +3872,6 @@ function VistaComercial({
             </article>
           )}
         </section>
-
-        {propuesta.formaCompra === "credito" && !beneficioOculto && <section className="aqv8-finance-simulator">
-          <div className="aqv8-section-title">
-            <span>SIMULÁ TU OPERACIÓN</span>
-            <h2>Financiación estimada</h2>
-          </div>
-          <div className="aqv8-finance-grid">
-            <div>
-              <label>Anticipo: <strong>{porcentajeAnticipo}%</strong></label>
-              <input type="range" min="10" max="80" step="5" value={porcentajeAnticipo} onChange={(evento) => setPorcentajeAnticipo(Number(evento.target.value))} />
-              <span>{formatoUSD(anticipoSimulado)}</span>
-            </div>
-            <div>
-              <label htmlFor="plazo-simulado">Plazo</label>
-              <select id="plazo-simulado" value={plazoSimulado} onChange={(evento) => setPlazoSimulado(Number(evento.target.value))}>
-                {[12, 24, 36, 48, 60].map((plazo) => <option value={plazo} key={plazo}>{plazo} meses</option>)}
-              </select>
-            </div>
-            <article><span>Cuota estimada sin interés</span><strong>{formatoUSD(cuotaSimulada)}</strong><small>Valor orientativo. Sujeto a condiciones de financiación.</small></article>
-          </div>
-        </section>}
 
         {cargadores.length > 0 && (
           <section className="aqv8-section" id="equipamiento-propuesta">
