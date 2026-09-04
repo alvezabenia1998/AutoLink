@@ -5970,6 +5970,23 @@ body,
   -webkit-text-fill-color: currentColor;
 }
 
+.propuesta-vehicle-thumb {
+  width: 82px;
+  height: 58px;
+  flex: 0 0 82px;
+  overflow: hidden;
+  border: 1px solid #e0e8e5;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fbfdfc, #edf3f1);
+}
+
+.propuesta-vehicle-thumb img {
+  width: 94px;
+  height: 58px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 5px rgba(15, 35, 49, .18));
+}
+
 .cliente-propuesta .apertura-propuesta {
   margin-top: 5px;
   color: #16834a;

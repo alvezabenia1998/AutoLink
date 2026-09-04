@@ -761,6 +761,9 @@
 /* Cotización final: composición definitiva aprobada. */
 .aqv8-summary-screen { position:fixed; inset:0; z-index:1001; min-height:100dvh; overflow:auto; background:radial-gradient(circle at 78% 24%,rgba(240,197,107,.22),transparent 25%),#fbfbfa; color:#0b1e3d; animation:aqv8-summary-arrive .65s ease both; }
 .aqv8-summary-screen .aqv8-experience-header { position:sticky; top:0; z-index:10; height:70px; }
+.aqv8-summary-header-actions { gap:9px!important; }
+.aqv8-summary-header-actions button { min-height:38px; padding:0 13px; border:1px solid rgba(255,255,255,.25); border-radius:8px; background:rgba(255,255,255,.08); color:#fff; font:inherit; font-size:11px; font-weight:800; transition:background .18s,border-color .18s; }
+.aqv8-summary-header-actions button:hover { border-color:rgba(255,255,255,.5); background:rgba(255,255,255,.16); }
 .aqv8-summary-screen .aqv8-experience-steps { height:88px; }
 .aqv8-summary-screen .aqv8-experience-steps .done b { color:#9a9fa8; border-color:#9a9fa8; }
 .aqv8-summary-screen .aqv8-experience-steps .active { color:#b37813; }
@@ -812,6 +815,9 @@
   .aqv8-summary-price { min-height:560px; }
 }
 @media (max-width:680px) {
+  .aqv8-summary-header-actions button { padding:0 9px; font-size:0; }
+  .aqv8-summary-header-actions button::first-letter { font-size:15px; }
+  .aqv8-summary-header-actions button:nth-of-type(3) { display:none; }
   .aqv8-summary-main { padding:18px 12px; }
   .aqv8-summary-vehicle { padding:25px 16px 18px; }
   .aqv8-summary-selection { grid-template-columns:1fr; padding:18px 0; text-align:center; }

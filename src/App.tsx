@@ -115,6 +115,11 @@ const STORAGE_ASESOR = "autoquote-asesor-v3";
 const STORAGE_VISITANTE = "nexora-visitante-anonimo-v1";
 const DEBOUNCE_VISITA_MINUTOS = 30;
 
+const obtenerImagenExperiencia = (imagen: string) =>
+  imagen.startsWith("/vehicles/") && imagen.endsWith(".jpg")
+    ? imagen.replace(/\.jpg$/i, "-transparent.png")
+    : imagen;
+
 
 type EstadoNube = "conectando" | "sincronizado" | "offline" | "error";
 type EstadoEnlacePublico = "cargando" | "listo" | "no-encontrada";
@@ -2696,9 +2701,12 @@ function Inicio({
             <div className="advisor-table">
               {propuestas.slice(0, 5).map((propuesta) => {
                 const modelo = catalogo.find((item) => item.id === propuesta.modeloId);
+                const color = modelo?.colores.find((item) => item.id === propuesta.colorId) || modelo?.colores[0];
                 const iniciales = propuesta.cliente.split(" ").slice(0, 2).map((parte) => parte[0]).join("").toUpperCase();
                 return <button key={propuesta.id} onClick={() => abrirPropuesta(propuesta)}>
-                  <span className="advisor-avatar">{iniciales}</span>
+                  <span className="advisor-avatar advisor-vehicle-thumb">
+                    {color ? <img src={obtenerImagenExperiencia(color.imagen)} alt={`BYD ${modelo?.nombre || "Vehículo"}`} /> : iniciales}
+                  </span>
                   <span className="advisor-client"><strong>{propuesta.cliente}</strong><small>BYD {modelo?.nombre || "Vehículo"} · {formatoApertura(propuesta.ultimaApertura)}</small>{propuesta.bonificacionRevelada && <em>✦ Beneficio descubierto</em>}</span>
                   <span className={`advisor-status status-${propuesta.estado.toLowerCase()}`}>{propuesta.estado}</span>
                   <span className="advisor-amount">{formatoUSD(Math.max(propuesta.precioLista - propuesta.bonificacion, 0))}</span>
@@ -2804,18 +2812,28 @@ function ListaPropuestas({
             const modelo = catalogo.find(
               (item) => item.id === propuesta.modeloId
             );
+            const color =
+              modelo?.colores.find((item) => item.id === propuesta.colorId) ||
+              modelo?.colores[0];
             const precioFinal = propuesta.precioLista - propuesta.bonificacion;
 
             return (
               <div className="fila-propuesta-completa" key={propuesta.id}>
                 <div className="cliente-propuesta">
-                  <div className="avatar">
-                    {propuesta.cliente
-                      .split(" ")
-                      .slice(0, 2)
-                      .map((parte) => parte[0])
-                      .join("")
-                      .toUpperCase()}
+                  <div className="avatar propuesta-vehicle-thumb">
+                    {color ? (
+                      <img
+                        src={obtenerImagenExperiencia(color.imagen)}
+                        alt={`BYD ${modelo?.nombre || "Vehículo"} ${color.nombre}`}
+                      />
+                    ) : (
+                      propuesta.cliente
+                        .split(" ")
+                        .slice(0, 2)
+                        .map((parte) => parte[0])
+                        .join("")
+                        .toUpperCase()
+                    )}
                   </div>
                   <div>
                     <strong>{propuesta.cliente}</strong>
@@ -3315,7 +3333,8 @@ function VistaComercial({
     esEnlacePublico && !resumenForzado && !presentacionForzada && presentacionYaVista && !beneficioYaVisto && propuesta.bonificacion > 0
   );
   const [mostrarPantallaResumen, setMostrarPantallaResumen] = useState(
-    esEnlacePublico && (resumenForzado || (!presentacionForzada && presentacionYaVista && (beneficioYaVisto || propuesta.bonificacion <= 0)))
+    !esEnlacePublico ||
+    (resumenForzado || (!presentacionForzada && presentacionYaVista && (beneficioYaVisto || propuesta.bonificacion <= 0)))
   );
   const [inspectorAbierto, setInspectorAbierto] = useState(false);
   const [zoomInspector, setZoomInspector] = useState(1);
@@ -3344,10 +3363,7 @@ function VistaComercial({
   const color =
   modelo.colores.find((item) => item.id === colorActivoId) ||
   modelo.colores[0];
-  const imagenExperiencia =
-    color.imagen.startsWith("/vehicles/") && color.imagen.endsWith(".jpg")
-      ? color.imagen.replace(/\.jpg$/i, "-transparent.png")
-      : color.imagen;
+  const imagenExperiencia = obtenerImagenExperiencia(color.imagen);
   const inicialesCliente = propuesta.cliente
     .split(" ")
     .filter(Boolean)
@@ -3459,7 +3475,18 @@ function VistaComercial({
         <section className={`aqv8-benefit-screen${revelandoBeneficio ? " is-opening" : ""}${!beneficioOculto ? " is-open" : ""}`}>
           <header className="aqv8-experience-header">
             <div><strong>NEXORA</strong><i /><b>BYD</b></div>
-            <div><span>▣ &nbsp; Mi propuesta</span><em>{inicialesCliente || "BYD"}</em></div>
+            <div className="aqv8-summary-header-actions">
+              {!esEnlacePublico && (
+                <>
+                  <button type="button" onClick={volver}>← Volver</button>
+                  <button type="button" onClick={() => copiarEnlace(propuesta)}>🔗 Copiar enlace</button>
+                  <button type="button" onClick={() => compartirEnlace(propuesta)}>Compartir</button>
+                  <button type="button" onClick={() => window.print()}>Imprimir / PDF</button>
+                </>
+              )}
+              {esEnlacePublico && <span>▣ &nbsp; Mi propuesta</span>}
+              <em>{inicialesCliente || "BYD"}</em>
+            </div>
           </header>
 
           <nav className="aqv8-experience-steps" aria-label="Progreso de la propuesta">
@@ -4032,7 +4059,7 @@ function MiniVistaPrevia({
   return (
     <div className="mini-preview">
       <img
-        src={color.imagen}
+        src={obtenerImagenExperiencia(color.imagen)}
         alt={modelo.nombre}
         onError={(evento) => {
           evento.currentTarget.src = FOTO_AUTO_ALTERNATIVA;
