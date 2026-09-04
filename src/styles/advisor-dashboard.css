@@ -65,6 +65,33 @@
 .advisor-notification > svg { width: 18px; color: #7f8e9d; }
 .advisor-notification:hover { border-color: #9fd3b3; transform: translateY(-1px); }
 
+.advisor-visit-history { margin-top: 20px; overflow: hidden; }
+.advisor-visit-empty { padding: 28px 22px; color: #7b8998; font-size: 13px; }
+.advisor-visit-list > button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 34px minmax(180px, 1fr) minmax(220px, auto) 18px;
+  align-items: center;
+  gap: 14px;
+  min-height: 68px;
+  padding: 12px 22px;
+  border: 0;
+  border-bottom: 1px solid #edf0f3;
+  background: #fff;
+  color: #223a50;
+  font: inherit;
+  text-align: left;
+}
+.advisor-visit-list > button:last-child { border-bottom: 0; }
+.advisor-visit-list > button:hover { background: #f8fafb; }
+.advisor-visit-list > button > span:first-child { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; background: #eef2f5; color: #91a0ae; }
+.advisor-visit-list > button > span:first-child.is-significant { background: #e9f8ef; color: #16834a; }
+.advisor-visit-list span strong, .advisor-visit-list span small { display: block; }
+.advisor-visit-list span strong { font-size: 12px; }
+.advisor-visit-list span small { margin-top: 4px; color: #8190a0; font-size: 10px; }
+.advisor-visit-list > button > span:nth-child(3) { text-align: right; }
+.advisor-visit-list > button > svg { width: 16px; color: #93a0ad; }
+
 .advisor-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
 .advisor-metrics article {
   display: grid;
@@ -142,6 +169,9 @@
   .advisor-metrics, .advisor-side { grid-template-columns: 1fr; }
   .advisor-table > button { grid-template-columns: 38px minmax(0, 1fr) 18px; }.advisor-status, .advisor-amount { display: none; }
   .advisor-card-heading { align-items: flex-start; flex-direction: column; }.advisor-card-heading > small { margin-top: -6px; }
+  .advisor-visit-list > button { grid-template-columns: 34px minmax(0, 1fr) 16px; padding-inline: 16px; }
+  .advisor-visit-list > button > span:nth-child(3) { grid-column: 2; text-align: left; }
+  .advisor-visit-list > button > svg { grid-column: 3; grid-row: 1 / span 2; }
 }
 
 /* Legibilidad y aprovechamiento del espacio en pantallas de escritorio. */

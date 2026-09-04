@@ -112,6 +112,8 @@ type Asesor = {
 const STORAGE_PROPUESTAS = "autoquote-propuestas-v3";
 const STORAGE_CATALOGO = "autoquote-catalogo-v3";
 const STORAGE_ASESOR = "autoquote-asesor-v3";
+const STORAGE_VISITANTE = "nexora-visitante-anonimo-v1";
+const DEBOUNCE_VISITA_MINUTOS = 30;
 
 
 type EstadoNube = "conectando" | "sincronizado" | "offline" | "error";
@@ -140,6 +142,32 @@ type PropuestaFila = {
   color_id: string | null;
   precio: number | null;
   datos: PropuestaDatos | null;
+};
+
+type VisitaCotizacion = {
+  id: number;
+  propuesta_id: string;
+  vendedor_id: string;
+  visitante_id: string;
+  visitada_en: string;
+  significativa: boolean;
+};
+
+type ResultadoVisita = {
+  registrada: boolean;
+  visita_id?: number;
+  significativa?: boolean;
+  visitada_en?: string;
+  total_visitas?: number;
+};
+
+const obtenerVisitanteAnonimo = () => {
+  const existente = localStorage.getItem(STORAGE_VISITANTE);
+  if (existente) return existente;
+
+  const nuevo = crypto.randomUUID();
+  localStorage.setItem(STORAGE_VISITANTE, nuevo);
+  return nuevo;
 };
 
 const propuestaAFila = (
@@ -694,6 +722,7 @@ export default function App() {
 
   const [catalogo, setCatalogo] = useState<ModeloVehiculo[]>(catalogoInicial);
   const [propuestas, setPropuestas] = useState<Propuesta[]>([]);
+  const [visitas, setVisitas] = useState<VisitaCotizacion[]>([]);
   const [asesor, setAsesor] = useState<Asesor>(asesorInicial);
   const [propuestaAbierta, setPropuestaAbierta] = useState<Propuesta | null>(
     null
@@ -862,31 +891,27 @@ if (propuestaEncontrada) {
   );
 
   let propuestaParaAbrir = propuestaEncontrada;
-  const claveApertura = `nexora-apertura-v2-${propuestaEncontrada.id}`;
   const { data: sesionActual } = await supabase.auth.getSession();
 
-  if (
-    filaOriginal &&
-    !sesionActual.session &&
-    !sessionStorage.getItem(claveApertura)
-  ) {
-    const fechaApertura = new Date().toISOString();
-    const propuestaConApertura: Propuesta = {
-      ...propuestaEncontrada,
-      aperturas: (propuestaEncontrada.aperturas ?? 0) + 1,
-      primeraApertura:
-        propuestaEncontrada.primeraApertura ?? fechaApertura,
-      ultimaApertura: fechaApertura,
-    };
+  if (filaOriginal && !sesionActual.session) {
     const { data: aperturaRegistrada, error: errorApertura } = await supabase
-      .rpc("registrar_apertura_propuesta", {
+      .rpc("registrar_visita_cotizacion", {
         p_propuesta_id: propuestaEncontrada.id,
+        p_visitante_id: obtenerVisitanteAnonimo(),
+        p_debounce_minutos: DEBOUNCE_VISITA_MINUTOS,
       });
+    const resultado = aperturaRegistrada as ResultadoVisita | null;
 
     if (errorApertura) {
       console.error("No se pudo registrar la apertura:", errorApertura);
-    } else if (aperturaRegistrada === true) {
-      sessionStorage.setItem(claveApertura, "1");
+    } else if (resultado?.registrada && resultado.visitada_en) {
+      const propuestaConApertura: Propuesta = {
+        ...propuestaEncontrada,
+        aperturas: resultado.total_visitas ?? propuestaEncontrada.aperturas,
+        primeraApertura:
+          propuestaEncontrada.primeraApertura ?? resultado.visitada_en,
+        ultimaApertura: resultado.visitada_en,
+      };
       propuestaParaAbrir = propuestaConApertura;
       setPropuestas((actuales) =>
         actuales.map((propuesta) =>
@@ -1025,6 +1050,47 @@ if (propuestaEncontrada) {
     return () => {
       window.clearInterval(intervalo);
       window.removeEventListener("focus", actualizarSeguimiento);
+    };
+  }, [esEnlacePublico]);
+
+  useEffect(() => {
+    if (esEnlacePublico) return;
+
+    const cargarVisitas = async () => {
+      if (document.visibilityState !== "visible") return;
+
+      const { data, error } = await supabase
+        .from("visitas_cotizacion")
+        .select("id,propuesta_id,vendedor_id,visitante_id,visitada_en,significativa")
+        .order("visitada_en", { ascending: false })
+        .limit(100);
+
+      if (!error && data) setVisitas(data as VisitaCotizacion[]);
+    };
+
+    void cargarVisitas();
+
+    const canal = supabase
+      .channel("visitas-panel")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "visitas_cotizacion" },
+        (cambio) => {
+          const nuevaVisita = cambio.new as VisitaCotizacion;
+          setVisitas((actuales) =>
+            [nuevaVisita, ...actuales.filter((visita) => visita.id !== nuevaVisita.id)].slice(0, 100)
+          );
+        }
+      )
+      .subscribe();
+
+    const intervalo = window.setInterval(cargarVisitas, 15000);
+    window.addEventListener("focus", cargarVisitas);
+
+    return () => {
+      window.clearInterval(intervalo);
+      window.removeEventListener("focus", cargarVisitas);
+      void supabase.removeChannel(canal);
     };
   }, [esEnlacePublico]);
 
@@ -1737,6 +1803,7 @@ const subirImagenColor = async (
           {pantalla === "inicio" && (
   <Inicio
     propuestas={propuestas}
+    visitas={visitas}
     catalogo={catalogo}
     abrirNuevaPropuesta={abrirNuevaPropuesta}
     abrirPropuesta={abrirPropuesta}
@@ -2527,6 +2594,7 @@ const subirImagenColor = async (
 
 function Inicio({
   propuestas,
+  visitas,
   catalogo,
   abrirNuevaPropuesta,
   abrirPropuesta,
@@ -2534,6 +2602,7 @@ function Inicio({
   asesor,
 }: {
   propuestas: Propuesta[];
+  visitas: VisitaCotizacion[];
   catalogo: ModeloVehiculo[];
   abrirNuevaPropuesta: () => void;
   abrirPropuesta: (propuesta: Propuesta) => void;
@@ -2565,26 +2634,19 @@ function Inicio({
     day: "numeric",
     month: "long",
   }).format(new Date());
-  const ultimaInteraccion = propuestas
+  const visitasConPropuesta = visitas
+    .map((visita) => ({
+      visita,
+      propuesta: propuestas.find(
+        (propuesta) => propuesta.id === visita.propuesta_id
+      ),
+    }))
     .filter(
-      (propuesta) =>
-        propuesta.ultimaApertura || propuesta.fechaBonificacionRevelada
-    )
-    .sort(
-      (a, b) =>
-        Math.max(
-          new Date(b.ultimaApertura ?? 0).getTime(),
-          new Date(b.fechaBonificacionRevelada ?? 0).getTime()
-        ) -
-        Math.max(
-          new Date(a.ultimaApertura ?? 0).getTime(),
-          new Date(a.fechaBonificacionRevelada ?? 0).getTime()
-        )
-    )[0];
-  const ultimaInteraccionEsBeneficio = Boolean(
-    ultimaInteraccion?.fechaBonificacionRevelada &&
-      new Date(ultimaInteraccion.fechaBonificacionRevelada).getTime() >=
-        new Date(ultimaInteraccion.ultimaApertura ?? 0).getTime()
+      (item): item is { visita: VisitaCotizacion; propuesta: Propuesta } =>
+        Boolean(item.propuesta)
+    );
+  const ultimaVisitaSignificativa = visitasConPropuesta.find(
+    ({ visita }) => visita.significativa
   );
 
   return (
@@ -2600,22 +2662,18 @@ function Inicio({
         </button>
       </header>
 
-      {ultimaInteraccion && (
+      {ultimaVisitaSignificativa && (
         <button
           className="advisor-notification"
           type="button"
-          onClick={() => abrirPropuesta(ultimaInteraccion)}
+          onClick={() => abrirPropuesta(ultimaVisitaSignificativa.propuesta)}
         >
           <span className="advisor-notification-icon">✦</span>
           <span>
             <small>NUEVA INTERACCIÓN</small>
-            <strong>
-              {ultimaInteraccion.cliente} {ultimaInteraccionEsBeneficio ? "descubrió su beneficio" : "abrió la propuesta"}
-            </strong>
+            <strong>Alguien abrió la propuesta de {ultimaVisitaSignificativa.propuesta.cliente}</strong>
             <em>
-              {ultimaInteraccionEsBeneficio
-                ? `Bonificación de ${formatoUSD(ultimaInteraccion.bonificacion)} · ${formatoApertura(ultimaInteraccion.fechaBonificacionRevelada)}`
-                : `${formatoApertura(ultimaInteraccion.ultimaApertura)} · ${ultimaInteraccion.aperturas ?? 1} ${(ultimaInteraccion.aperturas ?? 1) === 1 ? "apertura" : "aperturas"}`}
+              {formatoApertura(ultimaVisitaSignificativa.visita.visitada_en)} · Visita significativa
             </em>
           </span>
           <DashboardIcon name="arrow" />
@@ -2663,6 +2721,30 @@ function Inicio({
             <button onClick={abrirClientes}><DashboardIcon name="users" /><span><strong>Ver clientes</strong><small>Revisá tus contactos</small></span><DashboardIcon name="arrow" /></button>
           </section>
         </aside>
+      </section>
+
+      <section className="advisor-card advisor-visit-history">
+        <div className="advisor-card-heading">
+          <div><span>SEGUIMIENTO</span><h2>Historial de visitas</h2></div>
+          <small>Debounce de {DEBOUNCE_VISITA_MINUTOS} minutos</small>
+        </div>
+        {visitasConPropuesta.length === 0 ? (
+          <div className="advisor-visit-empty">Las visitas de tus propuestas aparecerán acá.</div>
+        ) : (
+          <div className="advisor-visit-list">
+            {visitasConPropuesta.slice(0, 10).map(({ visita, propuesta }) => {
+              const modelo = catalogo.find((item) => item.id === propuesta.modeloId);
+              return (
+                <button key={visita.id} type="button" onClick={() => abrirPropuesta(propuesta)}>
+                  <span className={visita.significativa ? "is-significant" : ""}>◉</span>
+                  <span><strong>Visitante anónimo</strong><small>{propuesta.cliente} · BYD {modelo?.nombre || "Vehículo"}</small></span>
+                  <span><strong>{formatoApertura(visita.visitada_en)}</strong><small>{visita.significativa ? "Nueva visita significativa" : "Revisión dentro del período de espera"}</small></span>
+                  <DashboardIcon name="arrow" />
+                </button>
+              );
+            })}
+          </div>
+        )}
       </section>
     </div>
   );
