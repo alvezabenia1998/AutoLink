@@ -588,7 +588,9 @@
 }
 
 /* Pantalla 2 del recorrido, basada en el concepto aprobado. */
-.aqv8-benefit-screen { position:fixed; inset:0; z-index:999; display:grid; min-height:100dvh; grid-template-rows:68px 88px 1fr 86px; overflow:auto; background:#fff; color:#10243a; animation:aqv8-welcome-in .45s ease both; }
+.aqv8-benefit-screen { position:fixed; inset:0; z-index:999; display:grid; min-height:100dvh; grid-template-rows:68px 88px 1fr 86px; overflow:auto; background:#fff; color:#10243a; color-scheme:only light; animation:aqv8-welcome-in .45s ease both; }
+.aqv8-benefit-screen,
+.aqv8-benefit-screen * { color-scheme:only light; }
 .aqv8-experience-header { display:flex; align-items:center; justify-content:space-between; padding:0 clamp(26px,4vw,54px); background:linear-gradient(110deg,#07182d,#0c2340); color:#fff; }
 .aqv8-experience-header>div { display:flex; align-items:center; gap:22px; }
 .aqv8-experience-header>div:first-child strong { font-size:28px; font-weight:500; letter-spacing:.06em; }
@@ -894,6 +896,8 @@
     display:block;
     overflow-y:auto;
     overflow-x:hidden;
+    overscroll-behavior-y:contain;
+    scroll-padding-bottom:calc(88px + env(safe-area-inset-bottom));
     background:#fffdf9;
   }
 
@@ -1017,7 +1021,7 @@
     min-height:310px;
     margin:0;
     padding:70px 20px 25px;
-    overflow:hidden;
+    overflow:visible;
     border-radius:12px;
   }
 
