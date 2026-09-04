@@ -3344,13 +3344,10 @@ function VistaComercial({
   const color =
   modelo.colores.find((item) => item.id === colorActivoId) ||
   modelo.colores[0];
-  const imagenesTransparentes: Record<string, string> = {
-    "/vehicles/atto-white.jpg": "/vehicles/atto-white-transparent.png",
-    "/vehicles/atto-grey.jpg": "/vehicles/atto-grey-transparent.png",
-    "/vehicles/atto-black.jpg": "/vehicles/atto-black-transparent.png",
-    "/vehicles/atto-cyan.jpg": "/vehicles/atto-cyan-transparent.png",
-  };
-  const imagenExperiencia = imagenesTransparentes[color.imagen] || color.imagen;
+  const imagenExperiencia =
+    color.imagen.startsWith("/vehicles/") && color.imagen.endsWith(".jpg")
+      ? color.imagen.replace(/\.jpg$/i, "-transparent.png")
+      : color.imagen;
   const inicialesCliente = propuesta.cliente
     .split(" ")
     .filter(Boolean)
