@@ -3475,18 +3475,7 @@ function VistaComercial({
         <section className={`aqv8-benefit-screen${revelandoBeneficio ? " is-opening" : ""}${!beneficioOculto ? " is-open" : ""}`}>
           <header className="aqv8-experience-header">
             <div><strong>NEXORA</strong><i /><b>BYD</b></div>
-            <div className="aqv8-summary-header-actions">
-              {!esEnlacePublico && (
-                <>
-                  <button type="button" onClick={volver}>← Volver</button>
-                  <button type="button" onClick={() => copiarEnlace(propuesta)}>🔗 Copiar enlace</button>
-                  <button type="button" onClick={() => compartirEnlace(propuesta)}>Compartir</button>
-                  <button type="button" onClick={() => window.print()}>Imprimir / PDF</button>
-                </>
-              )}
-              {esEnlacePublico && <span>▣ &nbsp; Mi propuesta</span>}
-              <em>{inicialesCliente || "BYD"}</em>
-            </div>
+            <div><span>▣ &nbsp; Mi propuesta</span><em>{inicialesCliente || "BYD"}</em></div>
           </header>
 
           <nav className="aqv8-experience-steps" aria-label="Progreso de la propuesta">
@@ -3580,8 +3569,23 @@ function VistaComercial({
         <section className="aqv8-summary-screen">
           <header className="aqv8-experience-header">
             <div><strong>NEXORA</strong><i /><b>BYD</b></div>
-            <div><span>▣ &nbsp; Mi propuesta</span><em>{inicialesCliente || "BYD"}</em></div>
+            <div><span>{esEnlacePublico ? "▣   Mi propuesta" : "Vista previa del cliente"}</span><em>{inicialesCliente || "BYD"}</em></div>
           </header>
+
+          {!esEnlacePublico && (
+            <aside className="aqv8-advisor-sharebar" aria-label="Acciones para compartir la propuesta">
+              <div>
+                <span>PROPUESTA LISTA</span>
+                <strong>Ya podés enviársela a {propuesta.cliente}</strong>
+              </div>
+              <div>
+                <button type="button" className="back" onClick={volver}>← Volver</button>
+                <button type="button" className="copy" onClick={() => copiarEnlace(propuesta)}>🔗 Copiar enlace</button>
+                <button type="button" className="share" onClick={() => compartirEnlace(propuesta)}>Compartir propuesta</button>
+                <button type="button" className="print" onClick={() => window.print()}>Imprimir / PDF</button>
+              </div>
+            </aside>
+          )}
 
           <nav className="aqv8-experience-steps" aria-label="Progreso de la propuesta">
             <div className="done"><b>1</b><span><strong>Elegí tu BYD</strong></span></div><i />
