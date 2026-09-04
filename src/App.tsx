@@ -862,7 +862,7 @@ if (propuestaEncontrada) {
   );
 
   let propuestaParaAbrir = propuestaEncontrada;
-  const claveApertura = `nexora-apertura-${propuestaEncontrada.id}`;
+  const claveApertura = `nexora-apertura-v2-${propuestaEncontrada.id}`;
   const { data: sesionActual } = await supabase.auth.getSession();
 
   if (
@@ -1000,6 +1000,31 @@ if (propuestaEncontrada) {
 
     return () => {
       void supabase.removeChannel(canal);
+    };
+  }, [esEnlacePublico]);
+
+  useEffect(() => {
+    if (esEnlacePublico) return;
+
+    const actualizarSeguimiento = async () => {
+      if (document.visibilityState !== "visible") return;
+
+      const { data: filas, error } = await supabase
+        .from("propuestas")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (!error && filas) {
+        setPropuestas((filas as PropuestaFila[]).map(filaAPropuesta));
+      }
+    };
+
+    const intervalo = window.setInterval(actualizarSeguimiento, 15000);
+    window.addEventListener("focus", actualizarSeguimiento);
+
+    return () => {
+      window.clearInterval(intervalo);
+      window.removeEventListener("focus", actualizarSeguimiento);
     };
   }, [esEnlacePublico]);
 
@@ -1257,18 +1282,22 @@ const abrirPropuesta = (propuesta: Propuesta) => {
 
   const actualizarEstado = async (id: string, estado: Propuesta["estado"]) => {
     const propuestaActual = propuestas.find((propuesta) => propuesta.id === id);
+    const estadoFinal =
+      propuestaActual?.estado === "Interesado" && estado === "Enviada"
+        ? "Interesado"
+        : estado;
     const propuestaActualizada = propuestaActual
-      ? { ...propuestaActual, estado }
+      ? { ...propuestaActual, estado: estadoFinal }
       : null;
 
     setPropuestas((actuales) =>
       actuales.map((propuesta) =>
-        propuesta.id === id ? { ...propuesta, estado } : propuesta
+        propuesta.id === id ? { ...propuesta, estado: estadoFinal } : propuesta
       )
     );
 
     setPropuestaAbierta((actual) =>
-      actual?.id === id ? { ...actual, estado } : actual
+      actual?.id === id ? { ...actual, estado: estadoFinal } : actual
     );
 
     if (!propuestaActualizada) return;
@@ -2536,13 +2565,27 @@ function Inicio({
     day: "numeric",
     month: "long",
   }).format(new Date());
-  const ultimaBonificacionDescubierta = propuestas
-    .filter((propuesta) => propuesta.fechaBonificacionRevelada)
+  const ultimaInteraccion = propuestas
+    .filter(
+      (propuesta) =>
+        propuesta.ultimaApertura || propuesta.fechaBonificacionRevelada
+    )
     .sort(
       (a, b) =>
-        new Date(b.fechaBonificacionRevelada ?? 0).getTime() -
-        new Date(a.fechaBonificacionRevelada ?? 0).getTime()
+        Math.max(
+          new Date(b.ultimaApertura ?? 0).getTime(),
+          new Date(b.fechaBonificacionRevelada ?? 0).getTime()
+        ) -
+        Math.max(
+          new Date(a.ultimaApertura ?? 0).getTime(),
+          new Date(a.fechaBonificacionRevelada ?? 0).getTime()
+        )
     )[0];
+  const ultimaInteraccionEsBeneficio = Boolean(
+    ultimaInteraccion?.fechaBonificacionRevelada &&
+      new Date(ultimaInteraccion.fechaBonificacionRevelada).getTime() >=
+        new Date(ultimaInteraccion.ultimaApertura ?? 0).getTime()
+  );
 
   return (
     <div className="advisor-dashboard">
@@ -2557,18 +2600,22 @@ function Inicio({
         </button>
       </header>
 
-      {ultimaBonificacionDescubierta && (
+      {ultimaInteraccion && (
         <button
           className="advisor-notification"
           type="button"
-          onClick={() => abrirPropuesta(ultimaBonificacionDescubierta)}
+          onClick={() => abrirPropuesta(ultimaInteraccion)}
         >
           <span className="advisor-notification-icon">✦</span>
           <span>
             <small>NUEVA INTERACCIÓN</small>
-            <strong>{ultimaBonificacionDescubierta.cliente} descubrió su beneficio</strong>
+            <strong>
+              {ultimaInteraccion.cliente} {ultimaInteraccionEsBeneficio ? "descubrió su beneficio" : "abrió la propuesta"}
+            </strong>
             <em>
-              Bonificación de {formatoUSD(ultimaBonificacionDescubierta.bonificacion)} · {formatoApertura(ultimaBonificacionDescubierta.fechaBonificacionRevelada)}
+              {ultimaInteraccionEsBeneficio
+                ? `Bonificación de ${formatoUSD(ultimaInteraccion.bonificacion)} · ${formatoApertura(ultimaInteraccion.fechaBonificacionRevelada)}`
+                : `${formatoApertura(ultimaInteraccion.ultimaApertura)} · ${ultimaInteraccion.aperturas ?? 1} ${(ultimaInteraccion.aperturas ?? 1) === 1 ? "apertura" : "aperturas"}`}
             </em>
           </span>
           <DashboardIcon name="arrow" />
