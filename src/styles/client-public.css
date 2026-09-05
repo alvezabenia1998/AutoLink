@@ -1020,13 +1020,25 @@
     width:100%;
     min-height:310px;
     margin:0;
-    padding:70px 20px 25px;
+    padding:104px 20px 25px;
     overflow:visible;
     border-radius:12px;
   }
 
   .aqv8-premium-envelope::before,.aqv8-premium-envelope::after { width:68px; }
-  .aqv8-premium-seal { width:66px; height:66px; top:-32px; }
+  .aqv8-premium-seal {
+    z-index:6;
+    top:18px;
+    width:66px;
+    height:66px;
+  }
+  .aqv8-envelope-folds { z-index:0; }
+  .aqv8-premium-envelope>span,
+  .aqv8-premium-envelope>i,
+  .aqv8-premium-envelope>h1,
+  .aqv8-premium-envelope>p,
+  .aqv8-premium-envelope>button,
+  .aqv8-benefit-confirmed { position:relative; z-index:3; }
   .aqv8-premium-envelope>span { font-size:27px; line-height:1.05; }
   .aqv8-premium-envelope h1 { font-size:18px; line-height:1.3; }
   .aqv8-premium-envelope p { font-size:12px; line-height:1.45; }
